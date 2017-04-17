@@ -1,5 +1,7 @@
 import GameState from 'states/GameState';
-import FullscreenController from 'objects/FullscreenController'
+import FullscreenController from 'controllers/FullscreenController'
+import LevelController from 'controllers/LevelController'
+
 class Game extends Phaser.Game {
 
 	constructor() {

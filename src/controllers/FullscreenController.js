@@ -2,6 +2,9 @@ class FullscreenController{
   constructor(game){
     this.game = game;
 
+    //stop antialiasing for fullscreen compat
+    //this.game.antialias = false;
+
     //add element
     this.el = document.createElement('span');
     this.el.classList.add("fullscreen-button");
@@ -27,11 +30,11 @@ class FullscreenController{
 
 
   gofull() {
-    console.log(this)
     if (this.game.scale.isFullScreen){
         this.game.scale.stopFullScreen();
     }
     else{
+        this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
         this.game.scale.startFullScreen(false);
     }
   }
