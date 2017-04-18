@@ -1,3 +1,12 @@
+This is forked from "Phaser ES6 Boilerplate".  The build process is the same as that.
+
+This repo contains starter code for my Ludum Dare 38 project, until LD38 starts, then it will contain my game.  Note that I'm just doing some housekeeping like loading a map, starting physics engine, et cetera.
+
+`npm install`
+`npm start`
+
+Tested on Win10x64 with Chrome.
+
 # Phaser ES6 Boilerplate
 
 This is a non-professional Phaser template for building standard games using the 
