@@ -1,6 +1,9 @@
-html {
-  background:#fff;
+html,#content>div{
+  background:#fff !important;/*TODO: fix this in JS*/
   color:#555;
+}
+
+html {
   width: 100%;
   height: 100%;
   margin: 0px;
@@ -24,7 +27,7 @@ body {
   align-items: center;
 }
 #content-after{
-  width:640px;
+  width:320px;
   display:inline-block;
   text-align:end;
 }
