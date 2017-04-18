@@ -95,9 +95,13 @@ exports.default = LevelController;
 },{}],3:[function(require,module,exports){
 'use strict';
 
-var _GameState = require('states/GameState');
+var _LoadingState = require('states/LoadingState');
 
-var _GameState2 = _interopRequireDefault(_GameState);
+var _LoadingState2 = _interopRequireDefault(_LoadingState);
+
+var _PlayingState = require('states/PlayingState');
+
+var _PlayingState2 = _interopRequireDefault(_PlayingState);
 
 var _FullscreenController = require('controllers/FullscreenController');
 
@@ -137,10 +141,12 @@ var Game = function (_Phaser$Game) {
 
 		var _this = _possibleConstructorReturn(this, (Game.__proto__ || Object.getPrototypeOf(Game)).call(this, 640, 480, Phaser.AUTO, 'content', null));
 
-		_this.state.add('GameState', _GameState2.default, false);
-		_this.state.start('GameState');
-
 		_this.fullscreenController = new _FullscreenController2.default(_this);
+
+		_this.state.add('LoadingState', _LoadingState2.default, false);
+		_this.state.add('PlayingState', _PlayingState2.default, false);
+
+		_this.state.start('LoadingState');
 
 		return _this;
 	}
@@ -148,9 +154,9 @@ var Game = function (_Phaser$Game) {
 	return Game;
 }(Phaser.Game);
 
-new Game();
+window.game = new Game();
 
-},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/GameState":5}],4:[function(require,module,exports){
+},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":5,"states/PlayingState":6}],4:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -232,7 +238,7 @@ var RainbowText = function (_Phaser$Text) {
 exports.default = RainbowText;
 
 },{}],5:[function(require,module,exports){
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
 	value: true
@@ -248,7 +254,7 @@ var _createClass = function () {
 	};
 }();
 
-var _RainbowText = require("objects/RainbowText");
+var _RainbowText = require('objects/RainbowText');
 
 var _RainbowText2 = _interopRequireDefault(_RainbowText);
 
@@ -274,28 +280,114 @@ function _inherits(subClass, superClass) {
 	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
-var GameState = function (_Phaser$State) {
-	_inherits(GameState, _Phaser$State);
+var LoadingState = function (_Phaser$State) {
+	_inherits(LoadingState, _Phaser$State);
 
-	function GameState() {
-		_classCallCheck(this, GameState);
+	function LoadingState() {
+		_classCallCheck(this, LoadingState);
 
-		return _possibleConstructorReturn(this, (GameState.__proto__ || Object.getPrototypeOf(GameState)).apply(this, arguments));
+		return _possibleConstructorReturn(this, (LoadingState.__proto__ || Object.getPrototypeOf(LoadingState)).apply(this, arguments));
 	}
 
-	_createClass(GameState, [{
-		key: "create",
-		value: function create() {
+	_createClass(LoadingState, [{
+		key: 'preload',
+		value: function preload() {
+
+			// assets go here
+			game.load.tilemap('world', 'maps/world.json', null, Phaser.Tilemap.TILED_JSON);
+			game.load.image('tiles', 'vendor/platformer_deluxe/Tiles/tiles_spritesheet.png');
+			console.log('loading');
+			game.load.onLoadComplete.add(this.loadComplete, this);
 			var center = { x: this.game.world.centerX, y: this.game.world.centerY };
-			var text = new _RainbowText2.default(this.game, center.x, center.y, "- phaser -\nwith a sprinkle of\nES6 dust!");
-			text.anchor.set(0.5);
+			this.text = new _RainbowText2.default(this.game, center.x, center.y, "- phaser -\nwith a sprinkle of\nES6 dust!");
+			this.text.anchor.set(0.5);
+			console.log('preload');
+		}
+	}, {
+		key: 'create',
+		value: function create() {
+			console.log('create');
+		}
+	}, {
+		key: 'loadComplete',
+		value: function loadComplete() {
+			console.log('loaded');
+			this.text.text = 'loaded, press X to start';
 		}
 	}]);
 
-	return GameState;
+	return LoadingState;
 }(Phaser.State);
 
-exports.default = GameState;
+exports.default = LoadingState;
+
+},{"objects/RainbowText":4}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () {
+	function defineProperties(target, props) {
+		for (var i = 0; i < props.length; i++) {
+			var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+		}
+	}return function (Constructor, protoProps, staticProps) {
+		if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+	};
+}();
+
+var _RainbowText = require('objects/RainbowText');
+
+var _RainbowText2 = _interopRequireDefault(_RainbowText);
+
+function _interopRequireDefault(obj) {
+	return obj && obj.__esModule ? obj : { default: obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+	if (!(instance instanceof Constructor)) {
+		throw new TypeError("Cannot call a class as a function");
+	}
+}
+
+function _possibleConstructorReturn(self, call) {
+	if (!self) {
+		throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+	}return call && (typeof call === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+	if (typeof superClass !== "function" && superClass !== null) {
+		throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var PlayingState = function (_Phaser$State) {
+	_inherits(PlayingState, _Phaser$State);
+
+	function PlayingState() {
+		_classCallCheck(this, PlayingState);
+
+		return _possibleConstructorReturn(this, (PlayingState.__proto__ || Object.getPrototypeOf(PlayingState)).apply(this, arguments));
+	}
+
+	_createClass(PlayingState, [{
+		key: 'create',
+		value: function create() {
+			var center = { x: this.game.world.centerX, y: this.game.world.centerY };
+			var text = new _RainbowText2.default(this.game, center.x, center.y, "Loaded");
+			text.anchor.set(0.5);
+			this.game.stage.backgroundColor = '#787878';
+			map = this.game.add.tilemap('world');
+		}
+	}]);
+
+	return PlayingState;
+}(Phaser.State);
+
+exports.default = PlayingState;
 
 },{"objects/RainbowText":4}]},{},[3])
 //# sourceMappingURL=game.js.map
