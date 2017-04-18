@@ -2,9 +2,6 @@ class FullscreenController{
   constructor(game){
     this.game = game;
 
-    //stop antialiasing for fullscreen compat
-    //this.game.antialias = false;
-
     //add element
     this.el = document.createElement('span');
     this.el.classList.add("fullscreen-button");

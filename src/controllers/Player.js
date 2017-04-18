@@ -8,9 +8,10 @@ class Player extends Phaser.Sprite{
     this.body.gravity.y = 300;
     this.body.collideWorldBounds = true;// todo: remove this
 
+    game.camera.follow(this, Phaser.Camera.FOLLOW_PLATFORMER);
   }
 
-  spawn(x,y){
+  spawnTo(x,y){
     this.x=x;
     this.y=y;
     this.game.world.addChild(this);

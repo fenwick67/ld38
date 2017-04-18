@@ -7,14 +7,22 @@ import LevelController from 'controllers/LevelController'
 class Game extends Phaser.Game {
 
 	constructor() {
-		super(640, 480, Phaser.AUTO, 'content', null);
+		var config = {
+		    width: 320,
+		    height: 240,
+		    renderer: Phaser.AUTO,
+		    antialias: false,
+				resolution:2,
+		    multiTexture: true,
+				parent:'content'
+		}
+		super(config);
 		this.fullscreenController = new FullscreenController(this);
 
 		this.state.add('LoadingState', LoadingState, false);
 		this.state.add('PlayingState', PlayingState, false);
 
 		this.state.start('LoadingState');
-
 
 	}
 

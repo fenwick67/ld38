@@ -1,4 +1,5 @@
 import RainbowText from 'objects/RainbowText';
+import PlayingState from 'states/PlayingState'
 
 class LoadingState extends Phaser.State {
 
@@ -6,22 +7,36 @@ class LoadingState extends Phaser.State {
 
 		// assets go here
     game.load.tilemap('world', 'maps/world.json', null, Phaser.Tilemap.TILED_JSON);
-    game.load.image('tiles', 'vendor/platformer_deluxe/Tiles/tiles_spritesheet.png');
+		game.load.image('paint_tiles', 'vendor/platformer_deluxe/Tiles/paint_tiles.png');
+
     console.log('loading');
 		game.load.onLoadComplete.add(this.loadComplete,this	);
+		game.load.onFileComplete.add(this.fileComplete,this	);
+
 		let center = { x: this.game.world.centerX, y: this.game.world.centerY }
 		this.text = new RainbowText(this.game, center.x, center.y, "- phaser -\nwith a sprinkle of\nES6 dust!");
 		this.text.anchor.set(0.5);
-		console.log('preload')
-	}
-
-	create() {
-		console.log('create')
 	}
 
 	loadComplete(){
-		console.log('loaded')
-		this.text.text = 'loaded, press X to start'
+		this.text.text = 'Loaded.\nPress ENTER to start';
+		this.enter = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
+	}
+
+	fileComplete(progress){
+		this.text.text = Math.round(progress)+'% loaded';
+	}
+
+	update(){
+		if (this.enter && this.enter.isDown){
+			this.whenDone();
+		}
+	}
+
+	whenDone(){
+		this.text.destroy();
+		// transition to playing state
+		game.state.start('PlayingState');
 	}
 
 }
