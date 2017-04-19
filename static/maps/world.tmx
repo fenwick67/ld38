@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="10" tilewidth="32" tileheight="32" nextobjectid="46">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="10" tilewidth="32" tileheight="32" nextobjectid="48">
  <tileset firstgid="1" name="tiles" tilewidth="32" tileheight="32" tilecount="4" columns="2">
   <image source="../vendor/platformer_deluxe/Tiles/paint_tiles.png" width="64" height="64"/>
+  <tile id="1">
+   <objectgroup draworder="index">
+    <object id="2" name="collision" x="0" y="30" width="32" height="2"/>
+   </objectgroup>
+  </tile>
  </tileset>
  <layer name="background" width="20" height="10" visible="0">
   <data encoding="csv">
@@ -31,7 +36,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup name="signs"/>
+ <objectgroup name="signs" visible="0"/>
  <objectgroup name="checkpoints" visible="0"/>
  <objectgroup name="ladders" visible="0"/>
  <layer name="physical" width="20" height="10">
@@ -48,7 +53,7 @@
 0,0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <layer name="hookable" width="20" height="10">
+ <layer name="hookable" width="20" height="10" visible="0">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,3,3,3,0,0,0,0,0,3,3,3,3,0,0,0,3,0,0,0,
@@ -62,12 +67,12 @@
 0,0,3,3,3,3,3,3,0,0,3,3,3,3,3,3,3,0,3,3
 </data>
  </layer>
- <layer name="foreground" width="20" height="10">
+ <layer name="foreground" width="20" height="10" visible="0">
   <data encoding="csv">
-4,4,4,0,0,0,4,4,4,4,4,4,4,0,0,4,4,0,0,0,
-0,0,0,4,4,4,0,0,0,0,0,0,0,0,0,0,0,4,4,0,
+0,0,0,0,0,0,4,4,4,4,4,4,4,0,0,4,4,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4,4,0,
 0,0,0,0,0,0,4,4,4,0,0,0,4,4,4,4,4,0,0,4,
-4,4,4,4,4,4,0,0,0,4,4,4,4,4,4,0,0,4,4,4,
+0,0,0,0,0,0,0,0,0,4,4,4,4,4,4,0,0,4,4,4,
 0,0,0,0,0,0,4,4,4,4,4,4,4,4,4,0,0,4,4,4,
 4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,
 4,4,4,4,4,4,4,4,4,0,0,0,0,4,4,4,4,4,4,0,
@@ -76,7 +81,7 @@
 4,4,4,4,4,4,4,4,4,4,4,4,0,0,4,4,4,4,4,4
 </data>
  </layer>
- <layer name="foreground_2" width="20" height="10">
+ <layer name="foreground_2" width="20" height="10" visible="0">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,
@@ -90,5 +95,10 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup name="entitites"/>
+ <objectgroup name="entitites" visible="0"/>
+ <objectgroup name="collisions" visible="0">
+  <object id="46" x="0" y="96">
+   <polygon points="0,0 160,-32 192,-32 224,-32 224,0 256,0 256,-32 352,-32 352,224 0,224"/>
+  </object>
+ </objectgroup>
 </map>

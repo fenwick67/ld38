@@ -92,6 +92,73 @@ exports.default = LevelController;
 },{}],3:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+  };
+}();
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && (typeof call === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var Player = function (_Phaser$Sprite) {
+  _inherits(Player, _Phaser$Sprite);
+
+  function Player(game, key, frame) {
+    _classCallCheck(this, Player);
+
+    var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, game, 0, 0, 'paint_tiles', 0));
+
+    _this.game = game;
+
+    return _this;
+  }
+
+  _createClass(Player, [{
+    key: 'spawnTo',
+    value: function spawnTo(x, y) {
+      this.x = x;
+      this.y = y;
+      this.game.world.addChild(this);
+    }
+  }, {
+    key: 'remove',
+    value: function remove() {
+      this.game.world.remove(this);
+    }
+  }]);
+
+  return Player;
+}(Phaser.Sprite);
+
+exports.default = Player;
+
+},{}],4:[function(require,module,exports){
+'use strict';
+
 var _LoadingState = require('states/LoadingState');
 
 var _LoadingState2 = _interopRequireDefault(_LoadingState);
@@ -142,7 +209,6 @@ var Game = function (_Phaser$Game) {
 						renderer: Phaser.AUTO,
 						antialias: false,
 						resolution: 2,
-						scale: 2,
 						multiTexture: true,
 						parent: 'content'
 				};
@@ -164,7 +230,7 @@ var Game = function (_Phaser$Game) {
 
 window.game = new Game();
 
-},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":5,"states/PlayingState":6}],4:[function(require,module,exports){
+},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":6,"states/PlayingState":7}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -245,7 +311,7 @@ var RainbowText = function (_Phaser$Text) {
 
 exports.default = RainbowText;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -349,78 +415,117 @@ var LoadingState = function (_Phaser$State) {
 
 exports.default = LoadingState;
 
-},{"objects/RainbowText":4,"states/PlayingState":6}],6:[function(require,module,exports){
+},{"objects/RainbowText":5,"states/PlayingState":7}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
-	value: true
+		value: true
 });
 
 var _createClass = function () {
-	function defineProperties(target, props) {
-		for (var i = 0; i < props.length; i++) {
-			var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
-		}
-	}return function (Constructor, protoProps, staticProps) {
-		if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
-	};
+		function defineProperties(target, props) {
+				for (var i = 0; i < props.length; i++) {
+						var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+				}
+		}return function (Constructor, protoProps, staticProps) {
+				if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+		};
 }();
 
 var _RainbowText = require('objects/RainbowText');
 
 var _RainbowText2 = _interopRequireDefault(_RainbowText);
 
+var _Player = require('controllers/Player');
+
+var _Player2 = _interopRequireDefault(_Player);
+
 function _interopRequireDefault(obj) {
-	return obj && obj.__esModule ? obj : { default: obj };
+		return obj && obj.__esModule ? obj : { default: obj };
 }
 
 function _classCallCheck(instance, Constructor) {
-	if (!(instance instanceof Constructor)) {
-		throw new TypeError("Cannot call a class as a function");
-	}
+		if (!(instance instanceof Constructor)) {
+				throw new TypeError("Cannot call a class as a function");
+		}
 }
 
 function _possibleConstructorReturn(self, call) {
-	if (!self) {
-		throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-	}return call && (typeof call === "object" || typeof call === "function") ? call : self;
+		if (!self) {
+				throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+		}return call && (typeof call === "object" || typeof call === "function") ? call : self;
 }
 
 function _inherits(subClass, superClass) {
-	if (typeof superClass !== "function" && superClass !== null) {
-		throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-	}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+		if (typeof superClass !== "function" && superClass !== null) {
+				throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+		}subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
 var PlayingState = function (_Phaser$State) {
-	_inherits(PlayingState, _Phaser$State);
+		_inherits(PlayingState, _Phaser$State);
 
-	function PlayingState() {
-		_classCallCheck(this, PlayingState);
+		function PlayingState() {
+				_classCallCheck(this, PlayingState);
 
-		return _possibleConstructorReturn(this, (PlayingState.__proto__ || Object.getPrototypeOf(PlayingState)).apply(this, arguments));
-	}
-
-	_createClass(PlayingState, [{
-		key: 'create',
-		value: function create() {
-			var center = { x: this.game.world.centerX, y: this.game.world.centerY };
-			this.game.stage.backgroundColor = '#787878';
-			var map = window.map = this.game.add.tilemap('world');
-
-			map.addTilesetImage('tiles', 'paint_tiles');
-
-			// render each layer
-			map.layers.forEach(function (l) {
-				var layer = map.createLayer(l.name);
-			});
+				return _possibleConstructorReturn(this, (PlayingState.__proto__ || Object.getPrototypeOf(PlayingState)).apply(this, arguments));
 		}
-	}]);
 
-	return PlayingState;
+		_createClass(PlayingState, [{
+				key: 'create',
+				value: function create() {
+
+						var center = { x: this.game.world.centerX, y: this.game.world.centerY };
+						this.game.stage.backgroundColor = '#787878';
+						var self = this;
+
+						var map = this.map = window.map = this.game.add.tilemap('world');
+						map.addTilesetImage('tiles', 'paint_tiles');
+
+						this.physicsLayer = null;
+						// render each layer of the map
+						map.layers.forEach(function (l) {
+								var layer = map.createLayer(l.name);
+								if (l.name == 'physical') {
+										self.physicsLayer = layer;
+										layer.debug = true;
+								}
+						});
+
+						//this.physicsLayer = map.layers[map.getLayer('physical')];
+
+						// init physics
+						// enable collision on all tiles in the physical layer
+						map.setCollisionByExclusion([], true, 'physical', true);
+
+						this.player = new _Player2.default(this, 0, 0);
+						game.physics.enable(this.player);
+
+						this.player.body.bounce.set(0.1);
+						this.player.body.tilePadding.set(32);
+						//game.physics.enable(this.physicsLayer);
+
+						this.player.spawnTo(16, 16);
+
+						game.camera.follow(this.player, Phaser.Camera.FOLLOW_PLATFORMER);
+						game.physics.arcade.gravity.y = 300;
+				}
+		}, {
+				key: 'update',
+				value: function update() {
+						game.physics.arcade.collide(this.player, this.physicsLayer, this.collisionHandler, null, this);
+				}
+		}, {
+				key: 'collisionHandler',
+				value: function collisionHandler(b1, b2) {
+						//console.log(arguments);
+				}
+		}]);
+
+		return PlayingState;
 }(Phaser.State);
 
 exports.default = PlayingState;
 
-},{"objects/RainbowText":4}]},{},[3])
+},{"controllers/Player":3,"objects/RainbowText":5}]},{},[4])
 //# sourceMappingURL=game.js.map

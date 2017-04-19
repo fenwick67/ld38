@@ -13,7 +13,6 @@ class Game extends Phaser.Game {
 		    renderer: Phaser.AUTO,
 		    antialias: false,
 				resolution:2,
-				scale:2,
 		    multiTexture: true,
 				parent:'content'
 		}
