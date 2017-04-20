@@ -1,10 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="10" tilewidth="32" tileheight="32" nextobjectid="48">
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="20" height="10" tilewidth="32" tileheight="32" nextobjectid="49">
  <tileset firstgid="1" name="tiles" tilewidth="32" tileheight="32" tilecount="4" columns="2">
   <image source="../vendor/platformer_deluxe/Tiles/paint_tiles.png" width="64" height="64"/>
+  <tile id="0">
+   <objectgroup draworder="index">
+    <object id="1" x="0" y="0" width="32" height="32"/>
+   </objectgroup>
+  </tile>
   <tile id="1">
    <objectgroup draworder="index">
-    <object id="2" name="collision" x="0" y="30" width="32" height="2"/>
+    <object id="6" name="aaaaa" x="32" y="0">
+     <polyline points="0,0 -32,32 0,32 0,0"/>
+    </object>
+   </objectgroup>
+  </tile>
+  <tile id="2">
+   <objectgroup draworder="index">
+    <object id="1" x="0" y="0" width="32" height="32"/>
+   </objectgroup>
+  </tile>
+  <tile id="3">
+   <objectgroup draworder="index">
+    <object id="1" x="0" y="0" width="32" height="32"/>
    </objectgroup>
   </tile>
  </tileset>
@@ -42,12 +59,12 @@
  <layer name="physical" width="20" height="10">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,2,0,0,0,
-0,0,0,0,2,2,2,0,2,2,2,0,0,0,2,0,0,0,2,2,
-2,2,2,2,0,0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,2,2,0,0,0,0,0,2,0,0,0,2,2,2,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,2,0,0,0,0,
-0,0,2,2,2,0,0,0,0,2,2,0,0,0,0,0,0,0,2,2,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,
+2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,2,2,0,2,2,2,0,0,0,0,2,2,2,2,2,0,
 0,0,0,0,0,2,2,2,2,2,0,0,0,0,2,0,0,0,0,0,
 0,0,0,0,0,0,2,2,2,2,2,0,0,0,0,0,0,0,0,0
@@ -95,10 +112,10 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup name="entitites" visible="0"/>
- <objectgroup name="collisions" visible="0">
-  <object id="46" x="0" y="96">
-   <polygon points="0,0 160,-32 192,-32 224,-32 224,0 256,0 256,-32 352,-32 352,224 0,224"/>
+ <objectgroup name="entitites"/>
+ <objectgroup name="collisions">
+  <object id="48" x="0" y="128">
+   <polyline points="0,0 160,-32 256,-32 352,0 480,-32 512,-96 640,-96 640,128 0,128 0,0"/>
   </object>
  </objectgroup>
 </map>

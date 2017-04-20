@@ -12,6 +12,8 @@ class PlayingState extends Phaser.State {
 		var map = this.map = window.map = this.game.add.tilemap('world');
 		map.addTilesetImage('tiles','paint_tiles');
 
+		game.physics.startSystem(Phaser.Physics.P2JS);
+		game.physics.p2.gravity.y = 1400;
 
 		this.physicsLayer = null;
 		// render each layer of the map
@@ -20,37 +22,39 @@ class PlayingState extends Phaser.State {
 			if (l.name == 'physical'){
 				self.physicsLayer = layer;
 				layer.debug=true;
+				layer.resizeWorld();
 			}
 		});
 
-		//this.physicsLayer = map.layers[map.getLayer('physical')];
 
 		// init physics
 		// enable collision on all tiles in the physical layer
 		map.setCollisionByExclusion([], true, 'physical', true)
 
+		console.log(this.physicsLayer)
+
+		this.layermain_tiles = game.physics.p2.convertTilemap(map, this.physicsLayer);
+		this.layerobjects_tiles = game.physics.p2.convertCollisionObjects(map,"collisions");   // this converts the polylines of the tiled - object layer into physics bodies.. make sure to use the "polyline" tool and not the "polygon" tool - otherwise it will not work!!
+
+		// create player
 		this.player = new Player(this,0,0);
-		game.physics.enable(this.player);
-
-		this.player.body.bounce.set(0.1);
-		this.player.body.tilePadding.set(32);
-		//game.physics.enable(this.physicsLayer);
-
-		this.player.spawnTo(16,16);
 
     game.camera.follow(this.player, Phaser.Camera.FOLLOW_PLATFORMER);
-		game.physics.arcade.gravity.y = 300;
+		game.physics.p2.gravity.y = 300;
+
+		// create cursors
 
 	}
 
 	update(){
-		game.physics.arcade.collide(this.player, this.physicsLayer, this.collisionHandler, null, this);
+
+
 	}
 
-	collisionHandler(b1,b2){
-		//console.log(arguments);
-	}
+
 
 }
+
+
 
 export default PlayingState;

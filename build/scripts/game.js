@@ -134,10 +134,54 @@ var Player = function (_Phaser$Sprite) {
 
     _this.game = game;
 
+    // settings
+    _this.speed = 100;
+    _this.jumpSpeed = 200;
+    _this.mass = 1;
+
+    // physics stuffs
+    game.physics.p2.enable(_this);
+    _this.body.mass = _this.mass;
+    game.physics.p2.enable(_this);
+    _this.anchor.setTo(0.5, 0.5); // set the anchor to the exact middle of the player (good for flipping the image on the same place)
+    _this.spawnTo(16, 16);
+    _this.body.setCircle(16, 0, 0);
+    _this.body.fixedRotation = true;
+
+    // create cursors
+    _this.cursors = _this.game.input.keyboard.createCursorKeys();
     return _this;
   }
 
   _createClass(Player, [{
+    key: 'update',
+    value: function update() {
+      var cursors = this.cursors;
+      var player = this;
+      // update the player
+      if (cursors.left.isDown) {
+        //  Move to the left
+        player.scale.x = -1; // a little trick.. flips the image to the left
+        player.body.velocity.x = -1 * player.speed;
+        //player.animations.play('walk');  //now play the animation named "walk"
+      } else if (cursors.right.isDown) {
+        //  Move to the right
+        player.scale.x = 1;
+        player.body.velocity.x = player.speed;
+        //player.animations.play('walk');
+      } else {
+          //player.loadTexture('mario', 0);   // this loads the frame 0 of my mario spritesheet  (stand)
+        }
+
+      if (cursors.up.isDown) {
+        //player.loadTexture('mario', 5);   // this loads the frame 5 (jump) of my mario spritesheet
+        if (touchingDown(player)) {
+          // this checks if the player is on the floor (we don't allow airjumps)
+          player.body.velocity.y = -1 * player.jumpSpeed; // change the y velocity to -800 means "jump!"
+        }
+      }
+    }
+  }, {
     key: 'spawnTo',
     value: function spawnTo(x, y) {
       this.x = x;
@@ -153,6 +197,19 @@ var Player = function (_Phaser$Sprite) {
 
   return Player;
 }(Phaser.Sprite);
+
+function touchingDown(someone) {
+  var yAxis = p2.vec2.fromValues(0, 1);
+  var result = false;
+  for (var i = 0; i < game.physics.p2.world.narrowphase.contactEquations.length; i++) {
+    var c = game.physics.p2.world.narrowphase.contactEquations[i]; // cycles through all the contactEquations until it finds our "someone"
+    if (c.bodyA === someone.body.data || c.bodyB === someone.body.data) {
+      var d = p2.vec2.dot(c.normalA, yAxis); // Normal dot Y-axis
+      if (c.bodyA === someone.body.data) d *= -1;
+      if (d > 0.5) result = true;
+    }
+  }return result;
+}
 
 exports.default = Player;
 
@@ -482,6 +539,9 @@ var PlayingState = function (_Phaser$State) {
 						var map = this.map = window.map = this.game.add.tilemap('world');
 						map.addTilesetImage('tiles', 'paint_tiles');
 
+						game.physics.startSystem(Phaser.Physics.P2JS);
+						game.physics.p2.gravity.y = 1400;
+
 						this.physicsLayer = null;
 						// render each layer of the map
 						map.layers.forEach(function (l) {
@@ -489,37 +549,30 @@ var PlayingState = function (_Phaser$State) {
 								if (l.name == 'physical') {
 										self.physicsLayer = layer;
 										layer.debug = true;
+										layer.resizeWorld();
 								}
 						});
-
-						//this.physicsLayer = map.layers[map.getLayer('physical')];
 
 						// init physics
 						// enable collision on all tiles in the physical layer
 						map.setCollisionByExclusion([], true, 'physical', true);
 
+						console.log(this.physicsLayer);
+
+						this.layermain_tiles = game.physics.p2.convertTilemap(map, this.physicsLayer);
+						this.layerobjects_tiles = game.physics.p2.convertCollisionObjects(map, "collisions"); // this converts the polylines of the tiled - object layer into physics bodies.. make sure to use the "polyline" tool and not the "polygon" tool - otherwise it will not work!!
+
+						// create player
 						this.player = new _Player2.default(this, 0, 0);
-						game.physics.enable(this.player);
-
-						this.player.body.bounce.set(0.1);
-						this.player.body.tilePadding.set(32);
-						//game.physics.enable(this.physicsLayer);
-
-						this.player.spawnTo(16, 16);
 
 						game.camera.follow(this.player, Phaser.Camera.FOLLOW_PLATFORMER);
-						game.physics.arcade.gravity.y = 300;
+						game.physics.p2.gravity.y = 300;
+
+						// create cursors
 				}
 		}, {
 				key: 'update',
-				value: function update() {
-						game.physics.arcade.collide(this.player, this.physicsLayer, this.collisionHandler, null, this);
-				}
-		}, {
-				key: 'collisionHandler',
-				value: function collisionHandler(b1, b2) {
-						//console.log(arguments);
-				}
+				value: function update() {}
 		}]);
 
 		return PlayingState;
