@@ -21,8 +21,10 @@ class PlayingState extends Phaser.State {
 			let layer = map.createLayer(l.name);
 			if (l.name == 'physical'){
 				self.physicsLayer = layer;
-				layer.debug=true;
+				layer.debug=false;
 				layer.resizeWorld();
+				// now add the layer for the player
+				game.playerGroup = game.add.group();
 			}
 		});
 
@@ -31,18 +33,29 @@ class PlayingState extends Phaser.State {
 		// enable collision on all tiles in the physical layer
 		map.setCollisionByExclusion([], true, 'physical', true)
 
-		console.log(this.physicsLayer)
-
 		this.layermain_tiles = game.physics.p2.convertTilemap(map, this.physicsLayer);
 		this.layerobjects_tiles = game.physics.p2.convertCollisionObjects(map,"collisions");   // this converts the polylines of the tiled - object layer into physics bodies.. make sure to use the "polyline" tool and not the "polygon" tool - otherwise it will not work!!
 
 		// create player
-		this.player = new Player(this,0,0);
-
+		this.player = new Player(this.game,0,0);
     game.camera.follow(this.player, Phaser.Camera.FOLLOW_PLATFORMER);
 		game.physics.p2.gravity.y = 300;
 
-		// create cursors
+		// player physics
+		var worldMaterial = this.game.physics.p2.createMaterial('worldMaterial');
+		// apply to world tiles
+		this.layerobjects_tiles.forEach(function(t){t.setMaterial(worldMaterial);});
+		this.layermain_tiles.forEach(function(t){t.setMaterial(worldMaterial);});
+
+		var spriteMaterial = this.game.physics.p2.createMaterial('spriteMaterial', this.player.body);
+		this.game.physics.p2.setWorldMaterial(worldMaterial, true, true, true, true);
+
+		var groundPlayerCM = this.game.physics.p2.createContactMaterial(spriteMaterial, worldMaterial, { friction: 10000000.0 });
+
+
+		//spawn player
+		this.player.spawnTo(40,40);
+
 
 	}
 
