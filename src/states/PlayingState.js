@@ -1,5 +1,5 @@
 import RainbowText from 'objects/RainbowText';
-import Player from 'controllers/Player'
+import Player from 'objects/Player';
 
 class PlayingState extends Phaser.State {
 
