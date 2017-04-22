@@ -143,7 +143,7 @@ var Game = function (_Phaser$Game) {
 						height: 240,
 						renderer: Phaser.AUTO,
 						antialias: false,
-						resolution: 2,
+						resolution: 4,
 						multiTexture: true,
 						parent: 'content'
 				};
@@ -166,7 +166,7 @@ var Game = function (_Phaser$Game) {
 
 window.game = new Game();
 
-},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":7,"states/PlayingState":8}],4:[function(require,module,exports){
+},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":8,"states/PlayingState":9}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -337,6 +337,144 @@ function _inherits(subClass, superClass) {
   }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 }
 
+var Follower = function (_Phaser$Sprite) {
+  _inherits(Follower, _Phaser$Sprite);
+
+  function Follower(game, key) {
+    _classCallCheck(this, Follower);
+
+    var _this = _possibleConstructorReturn(this, (Follower.__proto__ || Object.getPrototypeOf(Follower)).call(this, game, 0, 0, key || 'character', 0));
+
+    _this.key = key || 'character';
+    _this.game = game;
+
+    //animations
+    _this.animations.add('walk', [2, 3, 4, 5, 4, 3], 10, true);
+
+    // settings
+    _this.speed = 150;
+    _this.jumpSpeed = 200;
+    _this.mass = .00000000001;
+    _this.size = 14;
+    _this.bodyY = -2;
+    _this.maxDistance = 300;
+    _this.stopDistance = 100;
+
+    // physics stuffs
+    game.physics.p2.enable(_this);
+    _this.body.mass = _this.mass;
+    game.physics.p2.enable(_this);
+    _this.anchor.setTo(0.5, 0.5); // set the anchor to the exact middle of the player (good for flipping the image on the same place)
+    _this.body.setCircle(_this.size, 0, 0);
+    _this.body.offset.set(0, _this.bodyY);
+    _this.body.fixedRotation = true;
+
+    // create cursors
+    _this.cursors = _this.game.input.keyboard.createCursorKeys();
+
+    return _this;
+  }
+
+  _createClass(Follower, [{
+    key: 'follow',
+    value: function follow(target) {
+      this.target = target;
+      target.followers = target.followers || [];
+      target.followers.push(this);
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      if (!this.target) {
+        return;
+      }
+
+      var d = Phaser.Point.distance(this.target.position, this.body);
+      var dx = Math.abs(this.target.x - this.body.x);
+
+      if (d < this.stopDistance || dx < this.stopDistance) {
+        /// close enough
+        this.body.velocity.x = 0;
+        this.loadTexture(this.key, 1);
+        return;
+      }
+
+      // teleport to above player if too far away
+      else if (d > this.maxDistance) {
+          this.body.x = this.target.x;
+          this.body.y = this.target.y - this.target.size * 3;
+          return;
+        } else {
+          // move to player organically
+          if (this.target.x < this.position.x) {
+            //  Move to the left
+            this.scale.x = -1; // a little trick.. flips the image to the left
+            this.body.velocity.x = -1 * this.speed;
+            this.animations.play('walk');
+          } else {
+            //  Move to the right
+            this.scale.x = 1;
+            this.body.velocity.x = this.speed;
+            this.animations.play('walk');
+          }
+        }
+    }
+  }, {
+    key: 'spawnTo',
+    value: function spawnTo(x, y) {
+      this.body.x = x;
+      this.body.y = y;
+
+      if (this.game.playerGroup) {
+        console.log('add to player group');
+        this.game.playerGroup.addChild(this);
+      } else {
+        console.log('no player group');
+        this.game.world.addChild(this);
+      }
+    }
+  }]);
+
+  return Follower;
+}(Phaser.Sprite);
+
+exports.default = Follower;
+
+},{}],6:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+  };
+}();
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && (typeof call === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
 var Player = function (_Phaser$Sprite) {
   _inherits(Player, _Phaser$Sprite);
 
@@ -347,11 +485,15 @@ var Player = function (_Phaser$Sprite) {
 
     _this.game = game;
 
+    //animations
+    _this.animations.add('walk', [2, 3, 4, 5], 10, true);
+
     // settings
     _this.speed = 150;
     _this.jumpSpeed = 200;
-    _this.mass = .00000000000000001;
-    _this.size = 16;
+    _this.mass = .01;
+    _this.size = 14;
+    _this.bodyY = -2;
 
     // physics stuffs
     game.physics.p2.enable(_this);
@@ -359,6 +501,7 @@ var Player = function (_Phaser$Sprite) {
     game.physics.p2.enable(_this);
     _this.anchor.setTo(0.5, 0.5); // set the anchor to the exact middle of the player (good for flipping the image on the same place)
     _this.body.setCircle(_this.size, 0, 0);
+    _this.body.offset.set(0, _this.bodyY);
     _this.body.fixedRotation = true;
 
     // create cursors
@@ -380,17 +523,17 @@ var Player = function (_Phaser$Sprite) {
         //  Move to the left
         player.scale.x = -1; // a little trick.. flips the image to the left
         desiredX = -1 * player.speed;
-        //player.animations.play('walk');
+        player.animations.play('walk');
       } else if (cursors.right.isDown) {
         //  Move to the right
         player.scale.x = 1;
         desiredX = player.speed;
-        //player.animations.play('walk');
+        player.animations.play('walk');
       } else {
         // pressing neither dir
         if (touching) {
           desiredX = 0; // stop on the ground
-          //player.loadTexture('mario', 0);   // this loads the frame 0 of my mario spritesheet  (stand)
+          player.loadTexture('character', 0); // this loads the frame 0 of my mario spritesheet  (stand)
         }
         // apply drag in the air
       }
@@ -403,7 +546,12 @@ var Player = function (_Phaser$Sprite) {
         }
       }
 
-      // approach desiredX
+      // show jump if airborne
+      if (!touching) {
+        player.loadTexture('character', 1);
+      }
+
+      // approach desiredX velocity
       if (desiredX !== null) {
         player.body.velocity.x = player.body.velocity.x * 0.5 + 0.5 * desiredX;
       }
@@ -447,7 +595,7 @@ function touchingDown(someone) {
 
 exports.default = Player;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -528,7 +676,7 @@ var RainbowText = function (_Phaser$Text) {
 
 exports.default = RainbowText;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -590,8 +738,8 @@ var LoadingState = function (_Phaser$State) {
 
 			// assets go here
 			game.load.tilemap('world', 'maps/world.json', null, Phaser.Tilemap.TILED_JSON);
-			game.load.image('paint_tiles', 'img/paint_tiles.png');
-			game.load.image('character', 'img/character.png');
+			game.load.image('paint_tiles', 'img/paint_tiles-sheet.png');
+			game.load.spritesheet('character', 'img/character-sheet.png', 64, 64);
 
 			console.log('loading');
 			game.load.onLoadComplete.add(this.loadComplete, this);
@@ -636,7 +784,7 @@ var LoadingState = function (_Phaser$State) {
 
 exports.default = LoadingState;
 
-},{"objects/RainbowText":6,"states/PlayingState":8}],8:[function(require,module,exports){
+},{"objects/RainbowText":7,"states/PlayingState":9}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -664,6 +812,10 @@ var _Player2 = _interopRequireDefault(_Player);
 var _CurvyShader = require('objects/CurvyShader');
 
 var _CurvyShader2 = _interopRequireDefault(_CurvyShader);
+
+var _Follower = require('objects/Follower');
+
+var _Follower2 = _interopRequireDefault(_Follower);
 
 function _interopRequireDefault(obj) {
 		return obj && obj.__esModule ? obj : { default: obj };
@@ -744,7 +896,7 @@ var PlayingState = function (_Phaser$State) {
 						this.player = new _Player2.default(this.game, 0, 0);
 						game.camera.follow(this.player);
 						game.camera.deadzone = new Phaser.Rectangle(320 / 2 - 20, 240 / 2 - 40, 20, 40);
-						game.physics.p2.gravity.y = 300;
+						game.physics.p2.gravity.y = 500;
 
 						// player physics
 						var worldMaterial = this.game.physics.p2.createMaterial('worldMaterial');
@@ -763,6 +915,11 @@ var PlayingState = function (_Phaser$State) {
 
 						//spawn player
 						this.player.spawnTo(40, 40);
+
+						// create followers
+						this.follower = new _Follower2.default(this.game, 0, 0);
+						//this.follower.follow(this.player);
+						this.follower.spawnTo(300, 100);
 				}
 		}, {
 				key: 'update',
@@ -776,5 +933,5 @@ var PlayingState = function (_Phaser$State) {
 
 exports.default = PlayingState;
 
-},{"objects/CurvyShader":4,"objects/Player":5,"objects/RainbowText":6}]},{},[3])
+},{"objects/CurvyShader":4,"objects/Follower":5,"objects/Player":6,"objects/RainbowText":7}]},{},[3])
 //# sourceMappingURL=game.js.map

@@ -1,6 +1,7 @@
 import RainbowText from 'objects/RainbowText';
 import Player from 'objects/Player';
 import CurvyShader from 'objects/CurvyShader'
+import Follower from 'objects/Follower';
 
 class PlayingState extends Phaser.State {
 
@@ -51,7 +52,7 @@ class PlayingState extends Phaser.State {
 		this.player = new Player(this.game,0,0);
     game.camera.follow(this.player);
 		game.camera.deadzone = new Phaser.Rectangle(320/2-20,240/2-40,20,40);
-		game.physics.p2.gravity.y = 300;
+		game.physics.p2.gravity.y = 500;
 
 		// player physics
 		var worldMaterial = this.game.physics.p2.createMaterial('worldMaterial');
@@ -67,6 +68,10 @@ class PlayingState extends Phaser.State {
 		//spawn player
 		this.player.spawnTo(40,40);
 
+		// create followers
+		this.follower = new Follower(this.game,0,0);
+		//this.follower.follow(this.player);
+		this.follower.spawnTo(300,100);
 
 	}
 

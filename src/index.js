@@ -12,7 +12,7 @@ class Game extends Phaser.Game {
 		    height: 240,
 		    renderer: Phaser.AUTO,
 		    antialias: false,
-				resolution:2,
+				resolution:4,
 		    multiTexture: true,
 				parent:'content'
 		}

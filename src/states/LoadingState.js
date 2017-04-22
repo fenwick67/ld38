@@ -7,8 +7,8 @@ class LoadingState extends Phaser.State {
 
 		// assets go here
     game.load.tilemap('world', 'maps/world.json', null, Phaser.Tilemap.TILED_JSON);
-		game.load.image('paint_tiles', 'img/paint_tiles.png');
-		game.load.image('character', 'img/character.png');
+		game.load.image('paint_tiles', 'img/paint_tiles-sheet.png');
+		game.load.spritesheet('character', 'img/character-sheet.png',64,64);
 
 
     console.log('loading');

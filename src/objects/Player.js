@@ -4,11 +4,15 @@ class Player extends Phaser.Sprite{
     super(game,0,0,'character',0);
     this.game = game;
 
+    //animations
+    this.animations.add('walk', [2,3,4,5], 10, true);
+
     // settings
     this.speed=150;
     this.jumpSpeed = 200;
-    this.mass = .00000000000000001;
-    this.size = 16;
+    this.mass = .01;
+    this.size = 14;
+    this.bodyY = -2;
 
     // physics stuffs
     game.physics.p2.enable(this);
@@ -16,8 +20,8 @@ class Player extends Phaser.Sprite{
 		game.physics.p2.enable(this);
 		this.anchor.setTo(0.5,0.5); // set the anchor to the exact middle of the player (good for flipping the image on the same place)
 		this.body.setCircle(this.size,0,0);
+    this.body.offset.set(0,this.bodyY)
 		this.body.fixedRotation=true;
-
 
     // create cursors
     this.cursors = this.game.input.keyboard.createCursorKeys();
@@ -34,18 +38,18 @@ class Player extends Phaser.Sprite{
     if (cursors.left.isDown ){   //  Move to the left
             player.scale.x = -1;  // a little trick.. flips the image to the left
             desiredX = -1*player.speed;
-            //player.animations.play('walk');
+            player.animations.play('walk');
 
     }
     else if (cursors.right.isDown) {//  Move to the right
             player.scale.x = 1;
             desiredX= player.speed;
-            //player.animations.play('walk');
+            player.animations.play('walk');
     }
     else {// pressing neither dir
       if(touching){
         desiredX=0;  // stop on the ground
-        //player.loadTexture('mario', 0);   // this loads the frame 0 of my mario spritesheet  (stand)
+        player.loadTexture('character', 0);   // this loads the frame 0 of my mario spritesheet  (stand)
 
       }
       // apply drag in the air
@@ -59,7 +63,12 @@ class Player extends Phaser.Sprite{
         }
     }
 
-    // approach desiredX
+    // show jump if airborne
+    if (!touching){
+      player.loadTexture('character',1)
+    }
+
+    // approach desiredX velocity
     if (desiredX !== null){
       player.body.velocity.x = player.body.velocity.x *0.5 + 0.5 * desiredX;
     }
