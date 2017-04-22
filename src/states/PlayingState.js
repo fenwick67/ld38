@@ -1,5 +1,6 @@
 import RainbowText from 'objects/RainbowText';
 import Player from 'objects/Player';
+import CurvyShader from 'objects/CurvyShader'
 
 class PlayingState extends Phaser.State {
 
@@ -8,6 +9,8 @@ class PlayingState extends Phaser.State {
 		let center = { x: this.game.world.centerX, y: this.game.world.centerY }
 		this.game.stage.backgroundColor = '#787878';
 		let self = this;
+
+		//create maps
 
 		var map = this.map = window.map = this.game.add.tilemap('world');
 		map.addTilesetImage('tiles','paint_tiles');
@@ -26,8 +29,16 @@ class PlayingState extends Phaser.State {
 				// now add the layer for the player
 				game.playerGroup = game.add.group();
 			}
+
 		});
 
+		// create filter
+
+		this.warpFilter = new CurvyShader(game);
+		this.warpFilter.sizeX = 10;
+		this.warpFilter.sizeY = 10;
+		this.warpFilter.warp = 0;
+		this.world.filters = [this.warpFilter];
 
 		// init physics
 		// enable collision on all tiles in the physical layer
@@ -38,7 +49,8 @@ class PlayingState extends Phaser.State {
 
 		// create player
 		this.player = new Player(this.game,0,0);
-    game.camera.follow(this.player, Phaser.Camera.FOLLOW_PLATFORMER);
+    game.camera.follow(this.player);
+		game.camera.deadzone = new Phaser.Rectangle(320/2-20,240/2-40,20,40);
 		game.physics.p2.gravity.y = 300;
 
 		// player physics
@@ -52,7 +64,6 @@ class PlayingState extends Phaser.State {
 
 		var groundPlayerCM = this.game.physics.p2.createContactMaterial(spriteMaterial, worldMaterial, { friction: 10000000.0 });
 
-
 		//spawn player
 		this.player.spawnTo(40,40);
 
@@ -60,8 +71,7 @@ class PlayingState extends Phaser.State {
 	}
 
 	update(){
-
-
+		this.warpFilter.warp = Math.max(Math.min((this.game.camera.y-100) /3000,0.7),0)
 	}
 
 

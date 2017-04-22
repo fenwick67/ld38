@@ -1,7 +1,7 @@
 import LoadingState from 'states/LoadingState';
 import PlayingState from 'states/PlayingState';
 
-import FullscreenController from 'controllers/FullscreenController'
+import FullscreenController  from 'controllers/FullscreenController'
 import LevelController from 'controllers/LevelController'
 
 class Game extends Phaser.Game {
@@ -23,6 +23,7 @@ class Game extends Phaser.Game {
 		this.state.add('PlayingState', PlayingState, false);
 
 		this.state.start('LoadingState');
+		window.debug = true;
 
 	}
 

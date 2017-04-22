@@ -8,6 +8,8 @@ class LoadingState extends Phaser.State {
 		// assets go here
     game.load.tilemap('world', 'maps/world.json', null, Phaser.Tilemap.TILED_JSON);
 		game.load.image('paint_tiles', 'img/paint_tiles.png');
+		game.load.image('character', 'img/character.png');
+
 
     console.log('loading');
 		game.load.onLoadComplete.add(this.loadComplete,this	);
@@ -21,6 +23,7 @@ class LoadingState extends Phaser.State {
 	loadComplete(){
 		this.text.text = 'Loaded.\nPress ENTER to start';
 		this.enter = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
+		if (window.debug){this.whenDone();}
 	}
 
 	fileComplete(progress){

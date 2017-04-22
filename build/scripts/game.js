@@ -56,9 +56,11 @@ var FullscreenController = function () {
         value: function gofull() {
             if (this.game.scale.isFullScreen) {
                 this.game.scale.stopFullScreen();
+                this.game.canvas.classList.add('fullscreen');
             } else {
                 this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
                 this.game.scale.startFullScreen(false);
+                this.game.canvas.classList.remove('fullscreen');
             }
         }
     }]);
@@ -154,6 +156,7 @@ var Game = function (_Phaser$Game) {
 				_this.state.add('PlayingState', _PlayingState2.default, false);
 
 				_this.state.start('LoadingState');
+				window.debug = true;
 
 				return _this;
 		}
@@ -163,7 +166,143 @@ var Game = function (_Phaser$Game) {
 
 window.game = new Game();
 
-},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":6,"states/PlayingState":7}],4:[function(require,module,exports){
+},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":7,"states/PlayingState":8}],4:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+    }
+}
+
+function _possibleConstructorReturn(self, call) {
+    if (!self) {
+        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }return call && (typeof call === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+        throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var CurvyShader = function (_Phaser$Filter) {
+    _inherits(CurvyShader, _Phaser$Filter);
+
+    function CurvyShader(game) {
+        _classCallCheck(this, CurvyShader);
+
+        var _this = _possibleConstructorReturn(this, (CurvyShader.__proto__ || Object.getPrototypeOf(CurvyShader)).call(this, game));
+
+        _this.game = game;
+        _this.uniforms.invert = { type: '1f', value: 0 };
+        _this.uniforms.pixelSize = { type: '2f', value: { x: 1.0, y: 1.0 } };
+        _this.uniforms.dimensions = { type: '2f', value: { x: 1000.0, y: 1000.0 } };
+
+        _this.uniforms.warp = { type: '1f', value: 0 };
+        _this.uniforms.offset = { type: '1f', value: 0 };
+
+        _this.fragmentSrc = '\n\n          #define PI 3.14159\n          #define SQRT2 1.4142135623730951\n          precision mediump float;\n          varying vec2 vTextureCoord;\n          uniform vec2 dimensions;\n          uniform vec2 pixelSize;\n          uniform float offset;\n          uniform float warp;\n          uniform sampler2D uSampler;\n          void main(void){\n              // coords are 0..1.  Don\'t exceed that.\n              // zoom out the Y coords based on warp\n              float sc = warp*1./SQRT2;\n\n              vec2 zoomCoords = vec2(\n                 0.5+(vTextureCoord.x-0.5)*(1.0 - abs(sc)),\n                 0.5+(vTextureCoord.y-0.5)*(1.0 - abs(sc))\n               );\n              // now sample the middle up higher and outsides down lower\n              // TODO: determine the actual math for this\n\n              float moveUp = (0.9 -cos((vTextureCoord.x - 0.5) * PI/2.0 )) * warp ;\n              vec2 coord = zoomCoords + vec2(0.0,moveUp);\n              vec2 color =  coord ;\n              gl_FragColor = texture2D(uSampler, color);\n          }\n      ';
+
+        return _this;
+    }
+
+    return CurvyShader;
+}(Phaser.Filter);
+
+/**
+* An object with visible x and y properties that are used to define the size of the filter effect per pixel.
+*
+* @property size
+* @type Phaser.Point
+*/
+
+Object.defineProperty(CurvyShader.prototype, 'size', {
+    get: function get() {
+
+        return this.uniforms.pixelSize.value;
+    },
+
+    set: function set(value) {
+
+        this.dirty = true;
+        this.uniforms.pixelSize.value = value;
+    }
+});
+
+/**
+* A value that defines the horizontal size of the filter effect per pixel.
+*
+* @property sizeX
+* @type number
+*/
+Object.defineProperty(CurvyShader.prototype, 'sizeX', {
+    get: function get() {
+        return this.uniforms.pixelSize.value.x;
+    },
+
+    set: function set(value) {
+        this.dirty = true;
+        this.uniforms.pixelSize.value.x = value;
+    }
+});
+
+/**
+* A value that defines the vertical size of the filter effect per pixel.
+*
+* @property sizeY
+* @type number
+*/
+Object.defineProperty(CurvyShader.prototype, 'sizeY', {
+    get: function get() {
+        return this.uniforms.pixelSize.value.y;
+    },
+    set: function set(value) {
+        this.dirty = true;
+        this.uniforms.pixelSize.value.y = value;
+    }
+});
+
+/**
+* A value that defines the vertical size of the filter effect per pixel.
+*
+* @property sizeY
+* @type number
+*/
+Object.defineProperty(CurvyShader.prototype, 'warp', {
+    get: function get() {
+        return this.uniforms.warp.value;
+    },
+    set: function set(value) {
+        this.dirty = true;
+        this.uniforms.warp.value = value;
+    }
+});
+
+/**
+* A value that defines the vertical size of the filter effect per pixel.
+*
+* @property sizeY
+* @type number
+*/
+Object.defineProperty(CurvyShader.prototype, 'offset', {
+    get: function get() {
+        return this.uniforms.offset.value;
+    },
+    set: function set(value) {
+        this.dirty = true;
+        this.uniforms.offset.value = value;
+    }
+});
+
+exports.default = CurvyShader;
+
+},{}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -204,15 +343,15 @@ var Player = function (_Phaser$Sprite) {
   function Player(game, key, frame) {
     _classCallCheck(this, Player);
 
-    var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, game, 0, 0, 'paint_tiles', 0));
+    var _this = _possibleConstructorReturn(this, (Player.__proto__ || Object.getPrototypeOf(Player)).call(this, game, 0, 0, 'character', 0));
 
     _this.game = game;
 
     // settings
-    _this.speed = 200;
+    _this.speed = 150;
     _this.jumpSpeed = 200;
-    _this.mass = 1;
-    _this.size = 32;
+    _this.mass = .00000000000000001;
+    _this.size = 16;
 
     // physics stuffs
     game.physics.p2.enable(_this);
@@ -308,7 +447,7 @@ function touchingDown(someone) {
 
 exports.default = Player;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -389,7 +528,7 @@ var RainbowText = function (_Phaser$Text) {
 
 exports.default = RainbowText;
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -452,6 +591,7 @@ var LoadingState = function (_Phaser$State) {
 			// assets go here
 			game.load.tilemap('world', 'maps/world.json', null, Phaser.Tilemap.TILED_JSON);
 			game.load.image('paint_tiles', 'img/paint_tiles.png');
+			game.load.image('character', 'img/character.png');
 
 			console.log('loading');
 			game.load.onLoadComplete.add(this.loadComplete, this);
@@ -466,6 +606,9 @@ var LoadingState = function (_Phaser$State) {
 		value: function loadComplete() {
 			this.text.text = 'Loaded.\nPress ENTER to start';
 			this.enter = game.input.keyboard.addKey(Phaser.Keyboard.ENTER);
+			if (window.debug) {
+				this.whenDone();
+			}
 		}
 	}, {
 		key: 'fileComplete',
@@ -493,7 +636,7 @@ var LoadingState = function (_Phaser$State) {
 
 exports.default = LoadingState;
 
-},{"objects/RainbowText":5,"states/PlayingState":7}],7:[function(require,module,exports){
+},{"objects/RainbowText":6,"states/PlayingState":8}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -517,6 +660,10 @@ var _RainbowText2 = _interopRequireDefault(_RainbowText);
 var _Player = require('objects/Player');
 
 var _Player2 = _interopRequireDefault(_Player);
+
+var _CurvyShader = require('objects/CurvyShader');
+
+var _CurvyShader2 = _interopRequireDefault(_CurvyShader);
 
 function _interopRequireDefault(obj) {
 		return obj && obj.__esModule ? obj : { default: obj };
@@ -557,6 +704,8 @@ var PlayingState = function (_Phaser$State) {
 						this.game.stage.backgroundColor = '#787878';
 						var self = this;
 
+						//create maps
+
 						var map = this.map = window.map = this.game.add.tilemap('world');
 						map.addTilesetImage('tiles', 'paint_tiles');
 
@@ -576,6 +725,14 @@ var PlayingState = function (_Phaser$State) {
 								}
 						});
 
+						// create filter
+
+						this.warpFilter = new _CurvyShader2.default(game);
+						this.warpFilter.sizeX = 10;
+						this.warpFilter.sizeY = 10;
+						this.warpFilter.warp = 0;
+						this.world.filters = [this.warpFilter];
+
 						// init physics
 						// enable collision on all tiles in the physical layer
 						map.setCollisionByExclusion([], true, 'physical', true);
@@ -585,7 +742,8 @@ var PlayingState = function (_Phaser$State) {
 
 						// create player
 						this.player = new _Player2.default(this.game, 0, 0);
-						game.camera.follow(this.player, Phaser.Camera.FOLLOW_PLATFORMER);
+						game.camera.follow(this.player);
+						game.camera.deadzone = new Phaser.Rectangle(320 / 2 - 20, 240 / 2 - 40, 20, 40);
 						game.physics.p2.gravity.y = 300;
 
 						// player physics
@@ -608,7 +766,9 @@ var PlayingState = function (_Phaser$State) {
 				}
 		}, {
 				key: 'update',
-				value: function update() {}
+				value: function update() {
+						this.warpFilter.warp = Math.max(Math.min((this.game.camera.y - 100) / 3000, 0.7), 0);
+				}
 		}]);
 
 		return PlayingState;
@@ -616,5 +776,5 @@ var PlayingState = function (_Phaser$State) {
 
 exports.default = PlayingState;
 
-},{"objects/Player":4,"objects/RainbowText":5}]},{},[3])
+},{"objects/CurvyShader":4,"objects/Player":5,"objects/RainbowText":6}]},{},[3])
 //# sourceMappingURL=game.js.map

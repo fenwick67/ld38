@@ -23,16 +23,19 @@ class FullscreenController{
 
     this.el.addEventListener('click',()=>this.gofull() );
     document.getElementById('content-after').appendChild(this.el);
+
   }
 
 
   gofull() {
     if (this.game.scale.isFullScreen){
         this.game.scale.stopFullScreen();
+        this.game.canvas.classList.add('fullscreen');
     }
     else{
         this.game.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL;
         this.game.scale.startFullScreen(false);
+        this.game.canvas.classList.remove('fullscreen');
     }
   }
 

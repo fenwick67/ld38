@@ -1,18 +1,18 @@
 class Player extends Phaser.Sprite{
 
   constructor(game,key,frame){
-    super(game,0,0,'paint_tiles',0);
+    super(game,0,0,'character',0);
     this.game = game;
 
     // settings
-    this.speed=200;
+    this.speed=150;
     this.jumpSpeed = 200;
-    this.mass = 1;
-    this.size = 32;
+    this.mass = .00000000000000001;
+    this.size = 16;
 
     // physics stuffs
     game.physics.p2.enable(this);
-    this.body.mass = this.mass;  
+    this.body.mass = this.mass;
 		game.physics.p2.enable(this);
 		this.anchor.setTo(0.5,0.5); // set the anchor to the exact middle of the player (good for flipping the image on the same place)
 		this.body.setCircle(this.size,0,0);

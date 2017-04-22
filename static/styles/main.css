@@ -52,3 +52,8 @@ body {
 .fullscreen-button>*{
   padding:10px;
 }
+
+#content>canvas{/*hacky but owell*/
+  width:640px !important;
+  height:480px !important;
+}
