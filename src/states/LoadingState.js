@@ -8,8 +8,14 @@ class LoadingState extends Phaser.State {
 		// assets go here
     game.load.tilemap('world', 'maps/world.json', null, Phaser.Tilemap.TILED_JSON);
 		game.load.image('paint_tiles', 'img/paint_tiles-sheet.png');
-		game.load.spritesheet('character', 'img/character-sheet.png',64,64);
+		game.load.image('paint_tiles', 'img/paint_tiles-sheet.png');
 
+		['jetpack','battery','booster','steeringwheel'].forEach(function(name){
+			game.load.image(name, 'img/'+name+'.png');
+		})
+
+		game.load.spritesheet('character', 'img/character-sheet.png',64,64);
+		game.load.spritesheet('checkpoint', 'img/checkpoint.png',32,32);
 
     console.log('loading');
 		game.load.onLoadComplete.add(this.loadComplete,this	);

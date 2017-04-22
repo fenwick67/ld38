@@ -2,6 +2,8 @@ import RainbowText from 'objects/RainbowText';
 import Player from 'objects/Player';
 import CurvyShader from 'objects/CurvyShader'
 import Follower from 'objects/Follower';
+import Checkpoint from 'objects/Checkpoint'
+import Item from 'objects/Item'
 
 class PlayingState extends Phaser.State {
 
@@ -11,12 +13,16 @@ class PlayingState extends Phaser.State {
 		this.game.stage.backgroundColor = '#787878';
 		let self = this;
 
+
 		//create maps
 
 		var map = this.map = window.map = this.game.add.tilemap('world');
 		map.addTilesetImage('tiles','paint_tiles');
 
 		game.physics.startSystem(Phaser.Physics.P2JS);
+		// create default collision group
+		this.game.physics.p2.defaultCollisionGroup = this.game.physics.p2.collisionGroups[0];
+
 		game.physics.p2.gravity.y = 1400;
 
 		this.physicsLayer = null;
@@ -27,7 +33,8 @@ class PlayingState extends Phaser.State {
 				self.physicsLayer = layer;
 				layer.debug=false;
 				layer.resizeWorld();
-				// now add the layer for the player
+				// now add the layer for the player + followers
+				game.followerGroup = game.add.group();
 				game.playerGroup = game.add.group();
 			}
 
@@ -48,35 +55,54 @@ class PlayingState extends Phaser.State {
 		this.layermain_tiles = game.physics.p2.convertTilemap(map, this.physicsLayer);
 		this.layerobjects_tiles = game.physics.p2.convertCollisionObjects(map,"collisions");   // this converts the polylines of the tiled - object layer into physics bodies.. make sure to use the "polyline" tool and not the "polygon" tool - otherwise it will not work!!
 
+		//load the checkpoints
+		map.objects.checkpoints.forEach(function(pt){
+			var checkPt = new Checkpoint(game,pt);
+		})
+
+		//load the items
+		map.objects.items.forEach(function(pt){
+			var item = new Item(game,pt);
+		})
+
+
+		// collision groups
+		game.worldCollisionGroup = game.physics.p2.createCollisionGroup();
+		game.playerCollisionGroup = game.physics.p2.createCollisionGroup();
+		game.npcCollisionGroup = game.physics.p2.createCollisionGroup();
+
+		this.layerobjects_tiles.forEach(makeWorldObjectCollide);
+		this.layermain_tiles.forEach(makeWorldObjectCollide);
+
+		function makeWorldObjectCollide(t){
+			t.setCollisionGroup(game.worldCollisionGroup);
+			t.collides([game.playerCollisionGroup,game.npcCollisionGroup,game.worldCollisionGroup]);
+		}
+
 		// create player
 		this.player = new Player(this.game,0,0);
-    game.camera.follow(this.player);
+		game.player = this.player;
+		game.camera.follow(this.player);
 		game.camera.deadzone = new Phaser.Rectangle(320/2-20,240/2-40,20,40);
 		game.physics.p2.gravity.y = 500;
 
-		// player physics
-		var worldMaterial = this.game.physics.p2.createMaterial('worldMaterial');
-		// apply to world tiles
-		this.layerobjects_tiles.forEach(function(t){t.setMaterial(worldMaterial);});
-		this.layermain_tiles.forEach(function(t){t.setMaterial(worldMaterial);});
-
-		var spriteMaterial = this.game.physics.p2.createMaterial('spriteMaterial', this.player.body);
-		this.game.physics.p2.setWorldMaterial(worldMaterial, true, true, true, true);
-
-		var groundPlayerCM = this.game.physics.p2.createContactMaterial(spriteMaterial, worldMaterial, { friction: 10000000.0 });
 
 		//spawn player
 		this.player.spawnTo(40,40);
 
 		// create followers
 		this.follower = new Follower(this.game,0,0);
-		//this.follower.follow(this.player);
-		this.follower.spawnTo(300,100);
+		this.follower.follow(this.player);
+		this.follower.spawnTo(140,140);
+
+		this.follower2 = new Follower(this.game,0,0);
+		this.follower2.follow(this.player);
+		this.follower2.spawnTo(150,150);
 
 	}
 
 	update(){
-		this.warpFilter.warp = Math.max(Math.min((this.game.camera.y-100) /3000,0.7),0)
+		this.warpFilter.warp = Math.max(Math.min((this.game.camera.y) /3000,0.7),0)
 	}
 
 

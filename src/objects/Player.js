@@ -16,15 +16,21 @@ class Player extends Phaser.Sprite{
 
     // physics stuffs
     game.physics.p2.enable(this);
+
     this.body.mass = this.mass;
-		game.physics.p2.enable(this);
 		this.anchor.setTo(0.5,0.5); // set the anchor to the exact middle of the player (good for flipping the image on the same place)
 		this.body.setCircle(this.size,0,0);
     this.body.offset.set(0,this.bodyY)
 		this.body.fixedRotation=true;
 
+		this.body.setCollisionGroup(game.playerCollisionGroup);
+		this.body.collides([game.worldCollisionGroup,game.playerCollisionGroup,game.physics.p2.boundsCollisionGroup])
+
+
     // create cursors
     this.cursors = this.game.input.keyboard.createCursorKeys();
+
+
 
   }
 
@@ -73,6 +79,13 @@ class Player extends Phaser.Sprite{
       player.body.velocity.x = player.body.velocity.x *0.5 + 0.5 * desiredX;
     }
 
+  }
+
+  function spawnToCheckpoint(p){
+    this.body.x = p.x+p.size/2;
+    this.body.y = p.y;
+    this.body.velocity.y = 0
+    this.body.velocity.x = 0;
   }
 
   spawnTo(x,y){
