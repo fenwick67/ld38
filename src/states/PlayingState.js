@@ -4,6 +4,7 @@ import CurvyShader from 'objects/CurvyShader'
 import Follower from 'objects/Follower';
 import Checkpoint from 'objects/Checkpoint'
 import Item from 'objects/Item'
+import Sky from 'objects/sky';
 
 class PlayingState extends Phaser.State {
 
@@ -13,11 +14,15 @@ class PlayingState extends Phaser.State {
 		this.game.stage.backgroundColor = '#787878';
 		let self = this;
 
+		// add bg
+		this.sky = new Sky(this.game,this.game.stage);
+		game.world.addChild(this.sky);
 
 		//create maps
 
 		var map = this.map = window.map = this.game.add.tilemap('world');
 		map.addTilesetImage('tiles','paint_tiles');
+		map.addTilesetImage('huge_tiles',"huge_tiles")
 
 		game.physics.startSystem(Phaser.Physics.P2JS);
 		// create default collision group

@@ -30,8 +30,6 @@ class Player extends Phaser.Sprite{
     // create cursors
     this.cursors = this.game.input.keyboard.createCursorKeys();
 
-
-
   }
 
   update(){
@@ -81,7 +79,7 @@ class Player extends Phaser.Sprite{
 
   }
 
-  function spawnToCheckpoint(p){
+  spawnToCheckpoint(p){
     this.body.x = p.x+p.size/2;
     this.body.y = p.y;
     this.body.velocity.y = 0

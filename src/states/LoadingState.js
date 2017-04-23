@@ -8,9 +8,9 @@ class LoadingState extends Phaser.State {
 		// assets go here
     game.load.tilemap('world', 'maps/world.json', null, Phaser.Tilemap.TILED_JSON);
 		game.load.image('paint_tiles', 'img/paint_tiles-sheet.png');
-		game.load.image('paint_tiles', 'img/paint_tiles-sheet.png');
+		game.load.image('huge_tiles', 'img/huge_tiles.png');
 
-		['jetpack','battery','booster','steeringwheel'].forEach(function(name){
+		['jetpack','battery','booster','steeringwheel','bg'].forEach(function(name){
 			game.load.image(name, 'img/'+name+'.png');
 		})
 
