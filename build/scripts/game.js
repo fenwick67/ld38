@@ -102,6 +102,10 @@ var _PlayingState = require('states/PlayingState');
 
 var _PlayingState2 = _interopRequireDefault(_PlayingState);
 
+var _WonState = require('states/WonState');
+
+var _WonState2 = _interopRequireDefault(_WonState);
+
 var _FullscreenController = require('controllers/FullscreenController');
 
 var _FullscreenController2 = _interopRequireDefault(_FullscreenController);
@@ -154,6 +158,7 @@ var Game = function (_Phaser$Game) {
 
 				_this.state.add('LoadingState', _LoadingState2.default, false);
 				_this.state.add('PlayingState', _PlayingState2.default, false);
+				_this.state.add('WonState', _WonState2.default, false);
 
 				_this.state.start('LoadingState');
 
@@ -167,7 +172,7 @@ var Game = function (_Phaser$Game) {
 
 window.game = new Game();
 
-},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":13,"states/PlayingState":14}],4:[function(require,module,exports){
+},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":15,"states/PlayingState":16,"states/WonState":17}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -443,12 +448,18 @@ function _inherits(subClass, superClass) {
 var FixedSpeechBox = function (_SpeechBox) {
   _inherits(FixedSpeechBox, _SpeechBox);
 
-  function FixedSpeechBox(a, b, c, d, e, f, g) {
+  function FixedSpeechBox(x, y, str) {
     _classCallCheck(this, FixedSpeechBox);
 
-    var _this = _possibleConstructorReturn(this, (FixedSpeechBox.__proto__ || Object.getPrototypeOf(FixedSpeechBox)).call(this, a, b, c, d, e, f, g));
+    var _this = _possibleConstructorReturn(this, (FixedSpeechBox.__proto__ || Object.getPrototypeOf(FixedSpeechBox)).call(this, x, y, str));
+    // fit to center
+
 
     _this.fixedToCamera = true;
+    _this.todoText.x = 640 / 4 - 64;
+    _this.todoText.y = 480 / 4 - 64;
+    _this.todoText.anchor.set(0.5);
+
     _this.cameraOffset.set(64, 64);
     return _this;
   }
@@ -493,7 +504,7 @@ exports.default = FixedSpeechBox;
 
 window.FixedSpeechBox = FixedSpeechBox;
 
-},{"objects/SpeechBox":12}],7:[function(require,module,exports){
+},{"objects/SpeechBox":14}],7:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -547,6 +558,10 @@ var Follower = function (_Phaser$Sprite) {
     _this.key = key || 'follower';
     _this.game = game;
     _this.autoFollow = true;
+    _this.item = null;
+
+    // home position
+    _this.shipPosition = { x: 100, y: 200 };
 
     //animations
     _this.animations.add('walk', [4, 0, 5, 0], 10, true);
@@ -593,8 +608,13 @@ var Follower = function (_Phaser$Sprite) {
     key: 'update',
     value: function update() {
 
+      if (this.item) {
+        this.item.x = this.x;
+        this.item.y = this.y - 16;
+      }
+
       // follow the player if we found him
-      if (this.autoFollow && !this.target && game.player && Phaser.Point.distance(this.body, game.player) < 32) {
+      if (!this.item && this.autoFollow && !this.target && game.player && Phaser.Point.distance(this.body, game.player) < 32) {
         this.follow(game.player);
         game.sound.play('hello');
         if (this.sayOnFollow) {
@@ -602,34 +622,36 @@ var Follower = function (_Phaser$Sprite) {
         }
       }
 
-      if (!this.target) {
-        return;
-      } // don't move
+      if (this.target) {
+        var d = Phaser.Point.distance(this.target.position, this.body);
+        var dx = Math.abs(this.target.x - this.body.x);
 
-      var d = Phaser.Point.distance(this.target.position, this.body);
-      var dx = Math.abs(this.target.x - this.body.x);
+        if (d < this.stopDistance || dx < this.stopDistance) {
+          /// close enough, slow down
+          this.body.velocity.x = this.body.velocity.x * 0.9;
+        }
 
-      if (d < this.stopDistance || dx < this.stopDistance) {
-        /// close enough, slow down
+        // teleport to above player if too far away
+        else if (d > this.maxDistance) {
+            this.body.x = this.target.x;
+            this.body.y = this.target.y - this.target.size * 3;
+            return;
+          } else {
+            // move to player organically
+            if (this.target.x < this.position.x) {
+              //  Move to the left
+              this.body.velocity.x = -1 * this.speed;
+              this.animations.play('walk');
+            } else {
+              //  Move to the right
+              this.body.velocity.x = this.speed;
+            }
+          }
+      } else {
+        // no target
+        // stand still
         this.body.velocity.x = this.body.velocity.x * 0.9;
       }
-
-      // teleport to above player if too far away
-      else if (d > this.maxDistance) {
-          this.body.x = this.target.x;
-          this.body.y = this.target.y - this.target.size * 3;
-          return;
-        } else {
-          // move to player organically
-          if (this.target.x < this.position.x) {
-            //  Move to the left
-            this.body.velocity.x = -1 * this.speed;
-            this.animations.play('walk');
-          } else {
-            //  Move to the right
-            this.body.velocity.x = this.speed;
-          }
-        }
 
       // now pick animation
       if (this.body.velocity.x > this.speed * 0.5) {
@@ -658,6 +680,32 @@ var Follower = function (_Phaser$Sprite) {
         this.game.world.addChild(this);
       }
     }
+  }, {
+    key: 'giveItem',
+    value: function giveItem(i) {
+      this.item = i;
+      // find and remove this from the players followers
+      var idx = game.player.followers.indexOf(this);
+      if (idx > -1) {
+        game.player.followers.splice(idx, 1);
+      } else {
+        console.log('!!!!!');
+      }
+
+      game.ship.addItem(i);
+
+      this.body.x = game.ship.x + game.ship.items.length * 32;
+      this.body.y = game.ship.y;
+      this.body.velocity.x = 0;
+      this.body.velocity.y = 0;
+      this.target = null;
+
+      if (game.ship.items.length >= game.ship.itemsNeeded) {
+        new _FixedSpeechBox2.default().alert("Hey owl guy!\nYour ship is ready!");
+      } else {
+        new _FixedSpeechBox2.default().alert("I'll take this " + i.tilemapData.type + "\nto the ship for you!");
+      }
+    }
   }]);
 
   return Follower;
@@ -681,6 +729,14 @@ var _createClass = function () {
     if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
   };
 }();
+
+var _PlayerSpeechBox = require('objects/PlayerSpeechBox');
+
+var _PlayerSpeechBox2 = _interopRequireDefault(_PlayerSpeechBox);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
 
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -710,9 +766,12 @@ var Item = function (_Phaser$Sprite) {
       console.error(objData);throw new Error('you forgot a sprite name');
     }
 
-    // add to game immediately
     var _this = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this, game, objData.x, objData.y - 48, objData.type, 0));
 
+    _this.tilemapData = objData;
+    _this.pickedUp = false;
+
+    // add to game immediately
     if (_this.game.itemGroup) {
       _this.game.itemGroup.addChild(_this);
     } else {
@@ -724,16 +783,32 @@ var Item = function (_Phaser$Sprite) {
   _createClass(Item, [{
     key: 'update',
     value: function update() {
-      if (game.player && Phaser.Point.distance(this, game.player) < 32) {
+      if (!this.pickedUp && game.player && Phaser.Point.distance(this, game.player) < 32) {
         this.onPickup();
       }
     }
   }, {
     key: 'onPickup',
     value: function onPickup() {
-      // todo
-      game.sound.play('pickup');
-      this.destroy();
+
+      // give jetpack to player
+      if (this.tilemapData.type && this.tilemapData.type == "jetpack") {
+        game.player.hasJetpack = true;
+        game.sound.play('pickup');
+        this.pickedUp = true;
+        this.destroy();
+        new _PlayerSpeechBox2.default().alert('I can take this myself.\nNow I can finally fly \n on this planet!');
+        return;
+      }
+
+      // pick up if there's a follower to give it to
+
+      if (game.player && game.player.followers && game.player.followers.length > 0) {
+        this.pickedUp = true;
+        game.sound.play('pickup');
+        var follower = game.player.followers.pop();
+        follower.giveItem(this);
+      }
     }
   }]);
 
@@ -742,7 +817,7 @@ var Item = function (_Phaser$Sprite) {
 
 exports.default = Item;
 
-},{}],9:[function(require,module,exports){
+},{"objects/PlayerSpeechBox":10}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -789,6 +864,13 @@ var Player = function (_Phaser$Sprite) {
 
     //animations
     _this.animations.add('walk', [2, 3, 4, 5, 6, 7], 10, true);
+    _this.animations.add('dig', [8, 9, 10, 8, 15, 16], 10, true);
+    // 11 down, 12 blink, 13 look left, 14 look right
+    _this.animations.add('idle', [0, 0, 0, 11, 0, 0, 0, 11, 0, 12, 0, 11, 0, 0, 0, 11, 0, 0, 0, 11, 13, 13, 13, 11, 0, 0, 0, 11, 14, 14, 14, 11], 5, true);
+    _this.animations.add('jet', [17, 18], 10, true);
+
+    _this.inventory = [];
+    _this.touchingLastFrame = true;
 
     // settings
     _this.speed = 150;
@@ -796,6 +878,8 @@ var Player = function (_Phaser$Sprite) {
     _this.mass = .01;
     _this.size = 14;
     _this.bodyY = -2;
+    _this.maxJetpackFuel = 100;
+    _this.jetpackFuel = _this.maxJetpackFuel;
 
     // physics stuffs
     game.physics.p2.enable(_this);
@@ -816,6 +900,11 @@ var Player = function (_Phaser$Sprite) {
   }
 
   _createClass(Player, [{
+    key: 'dig',
+    value: function dig() {
+      // TODO
+    }
+  }, {
     key: 'update',
     value: function update() {
       var cursors = this.cursors;
@@ -824,7 +913,11 @@ var Player = function (_Phaser$Sprite) {
       var desiredX = null;
       // update the player
 
-      if (cursors.left.isDown) {
+      if (cursors.down.isDown) {
+        desiredX = 0;
+        player.animations.play('dig'); // dig!
+        player.dig();
+      } else if (cursors.left.isDown) {
         //  Move to the left
         player.scale.x = -1; // a little trick.. flips the image to the left
         desiredX = -1 * player.speed;
@@ -838,13 +931,12 @@ var Player = function (_Phaser$Sprite) {
         // pressing neither dir
         if (touching) {
           desiredX = 0; // stop on the ground
-          player.loadTexture('character', 0); // this loads the frame 0 of my mario spritesheet  (stand)
+          player.animations.play('idle');
         }
-        // apply drag in the air
       }
 
       if (cursors.up.isDown && !player.jumpedLastFrame) {
-        //player.loadTexture('mario', 5);   // this loads the frame 5 (jump) of my mario spritesheet
+
         if (touching) {
           // this checks if the player is on the floor (we don't allow airjumps)
           player.body.velocity.y = -1 * player.jumpSpeed; //
@@ -855,15 +947,29 @@ var Player = function (_Phaser$Sprite) {
         player.jumpedLastFrame = false;
       }
 
-      // show jump if airborne
-      if (!touching) {
+      if (!touching && cursors.up.isDown && player.hasJetpack && player.jetpackFuel > 0) {
+        player.jetpackFuel--;
+        player.body.velocity.y = -1 * player.jumpSpeed;
+        player.animations.play('jet');
+      } else if (!touching && !this.touchingLastFrame) {
         player.loadTexture('character', 1);
+      }
+
+      if (touching) {
+        player.jetpackFuel = player.maxJetpackFuel;
       }
 
       // approach desiredX velocity
       if (desiredX !== null) {
         player.body.velocity.x = player.body.velocity.x * 0.5 + 0.5 * desiredX;
       }
+
+      // handle falling beneath the map
+      if (game.world && game.world.bounds && this.y > game.world.bounds.y + game.world.bounds.height) {
+        this.respawn();
+      }
+
+      this.touchingLastFrame = touching;
     }
   }, {
     key: 'spawnToCheckpoint',
@@ -893,7 +999,7 @@ var Player = function (_Phaser$Sprite) {
     key: 'respawn',
     value: function respawn() {
       // get last checkpoint
-      var pt = game.lastCheckpoint;
+      var pt = game.lastCheckpoint || { x: 0, y: 0 };
       this.spawnTo(pt.x, pt.y);
     }
   }, {
@@ -922,6 +1028,65 @@ function touchingDown(someone) {
 exports.default = Player;
 
 },{}],10:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _FixedSpeechBox2 = require('objects/FixedSpeechBox');
+
+var _FixedSpeechBox3 = _interopRequireDefault(_FixedSpeechBox2);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && (typeof call === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+} // same as FixedSpeechBox BUT it has a brown color
+
+
+var PlayerSpeechBox = function (_FixedSpeechBox) {
+  _inherits(PlayerSpeechBox, _FixedSpeechBox);
+
+  function PlayerSpeechBox(a, r, g, s) {
+    _classCallCheck(this, PlayerSpeechBox);
+
+    var _this = _possibleConstructorReturn(this, (PlayerSpeechBox.__proto__ || Object.getPrototypeOf(PlayerSpeechBox)).call(this, a, r, g, s));
+
+    var s = {};
+    var currStyle = _this.todoText.style;
+    var k = Object.keys(currStyle);
+    for (var i = 0; i < k.length; i++) {
+      s[k[i]] = currStyle[k[i]];
+    }
+    s.fill = '#aaaa00';
+
+    _this.todoText.setStyle(s);
+    return _this;
+  }
+
+  return PlayerSpeechBox;
+}(_FixedSpeechBox3.default);
+
+exports.default = PlayerSpeechBox;
+
+},{"objects/FixedSpeechBox":6}],11:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1002,7 +1167,86 @@ var RainbowText = function (_Phaser$Text) {
 
 exports.default = RainbowText;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+  };
+}();
+
+var _FixedSpeechBox = require('objects/FixedSpeechBox');
+
+var _FixedSpeechBox2 = _interopRequireDefault(_FixedSpeechBox);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && (typeof call === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var Ship = function (_Phaser$Sprite) {
+  _inherits(Ship, _Phaser$Sprite);
+
+  function Ship(game, x, y) {
+    _classCallCheck(this, Ship);
+
+    var _this = _possibleConstructorReturn(this, (Ship.__proto__ || Object.getPrototypeOf(Ship)).call(this, game, x, y, null, 0));
+
+    _this.itemsNeeded = 6;
+    _this.items = [];
+    game.world.addChild(_this);
+    return _this;
+  }
+
+  _createClass(Ship, [{
+    key: 'addItem',
+    value: function addItem(i) {
+      this.items.push(i);
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      // get player, check if it's close
+      if (this.items.length >= this.itemsNeeded && Phaser.Point.distance(this, game.player) < 32) {
+        //WIN!
+        game.state.start('WonState');
+        console.log('win');
+      }
+    }
+  }]);
+
+  return Ship;
+}(Phaser.Sprite);
+
+exports.default = Ship;
+
+},{"objects/FixedSpeechBox":6}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1066,7 +1310,7 @@ var Sky = function (_Phaser$Group) {
 
 exports.default = Sky;
 
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1192,7 +1436,7 @@ var SpeechBox = function (_Phaser$Group) {
 
 exports.default = SpeechBox;
 
-},{"objects/RainbowText":10}],13:[function(require,module,exports){
+},{"objects/RainbowText":11}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1312,7 +1556,7 @@ var LoadingState = function (_Phaser$State) {
 
 exports.default = LoadingState;
 
-},{"objects/RainbowText":10,"states/PlayingState":14}],14:[function(require,module,exports){
+},{"objects/RainbowText":11,"states/PlayingState":16}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1364,6 +1608,14 @@ var _SpeechBox2 = _interopRequireDefault(_SpeechBox);
 var _FixedSpeechBox = require('objects/FixedSpeechBox');
 
 var _FixedSpeechBox2 = _interopRequireDefault(_FixedSpeechBox);
+
+var _PlayerSpeechBox = require('objects/PlayerSpeechBox');
+
+var _PlayerSpeechBox2 = _interopRequireDefault(_PlayerSpeechBox);
+
+var _Ship = require('objects/Ship');
+
+var _Ship2 = _interopRequireDefault(_Ship);
 
 function _interopRequireDefault(obj) {
 		return obj && obj.__esModule ? obj : { default: obj };
@@ -1418,8 +1670,6 @@ var PlayingState = function (_Phaser$State) {
 						// create default collision group
 						this.game.physics.p2.defaultCollisionGroup = this.game.physics.p2.collisionGroups[0];
 
-						game.physics.p2.gravity.y = 1400;
-
 						this.physicsLayer = null;
 						// render each layer of the map
 						map.layers.forEach(function (l) {
@@ -1432,6 +1682,8 @@ var PlayingState = function (_Phaser$State) {
 										game.itemGroup = game.add.group();
 										game.followerGroup = game.add.group();
 										game.playerGroup = game.add.group();
+								} else if (l.name == "hazards") {
+										self.hazardLayer = layer;
 								}
 						});
 
@@ -1454,6 +1706,7 @@ var PlayingState = function (_Phaser$State) {
 						map.setCollisionByExclusion([], true, 'physical', true);
 
 						this.layermain_tiles = game.physics.p2.convertTilemap(map, this.physicsLayer);
+						this.layerhazard_tiles = game.physics.p2.convertTilemap(map, this.hazardLayer);
 						this.layerobjects_tiles = game.physics.p2.convertCollisionObjects(map, "collisions"); // this converts the polylines of the tiled - object layer into physics bodies.. make sure to use the "polyline" tool and not the "polygon" tool - otherwise it will not work!!
 
 						//load the checkpoints
@@ -1469,7 +1722,6 @@ var PlayingState = function (_Phaser$State) {
 						map.objects.followers.forEach(function (pt) {
 								var follower = new _Follower2.default(game, 0, 0);
 								follower.spawnTo(pt.x, pt.y);
-								console.log(pt);
 								if (pt.properties.sayOnFollow) {
 										follower.sayOnFollow = pt.properties.sayOnFollow.split('\n\n');
 								}
@@ -1477,18 +1729,21 @@ var PlayingState = function (_Phaser$State) {
 
 						this.layerobjects_tiles.forEach(makeWorldObjectCollide);
 						this.layermain_tiles.forEach(makeWorldObjectCollide);
+						this.layerhazard_tiles.forEach(makeWorldObjectCollide);
 
 						function makeWorldObjectCollide(t) {
 								t.setCollisionGroup(game.worldCollisionGroup);
 								t.collides([game.playerCollisionGroup, game.npcCollisionGroup, game.worldCollisionGroup]);
 						}
 
+						// TODO: make the hazard tiles kill the player
+
 						// create player
 						this.player = new _Player2.default(this.game, 0, 0);
 						game.player = this.player;
 						game.camera.follow(this.player);
 						game.camera.deadzone = new Phaser.Rectangle(320 / 2 - 20, 240 / 2 - 40, 20, 40);
-						game.physics.p2.gravity.y = 500;
+						game.physics.p2.gravity.y = 800;
 
 						//spawn player
 
@@ -1506,18 +1761,22 @@ var PlayingState = function (_Phaser$State) {
 						}
 
 						// create speech box
-						new _FixedSpeechBox2.default().alert('?!?!?');
+						var b = new _PlayerSpeechBox2.default().alertSequence(['Where am I?', 'Did my ship crash?', 'Oh no! Pieces are\n strewn about everywhere!', 'And to top it all off,\nThis gravity is so high!', 'I can\'t fly, and the\nparts are too heavy to carry!']);
 
 						// play music
 						if (!window.debug) {
 								game.music = game.add.audio('music-1');
 								game.music.loopFull();
 						}
+
+						// create ship
+						this.ship = game.ship = new _Ship2.default(game, 176, 208);
 				}
 		}, {
 				key: 'update',
 				value: function update() {
-						this.warpFilter.warp = Math.max(Math.min(this.game.camera.y / 8000, 0.8), 0);
+						// h = 1120
+						this.warpFilter.warp = Math.max(Math.min(game.camera.y / game.camera.bounds.height, 0.5), 0.2);
 				}
 		}]);
 
@@ -1526,5 +1785,79 @@ var PlayingState = function (_Phaser$State) {
 
 exports.default = PlayingState;
 
-},{"objects/Checkpoint":4,"objects/CurvyShader":5,"objects/FixedSpeechBox":6,"objects/Follower":7,"objects/Item":8,"objects/Player":9,"objects/RainbowText":10,"objects/Sky":11,"objects/SpeechBox":12}]},{},[3])
+},{"objects/Checkpoint":4,"objects/CurvyShader":5,"objects/FixedSpeechBox":6,"objects/Follower":7,"objects/Item":8,"objects/Player":9,"objects/PlayerSpeechBox":10,"objects/RainbowText":11,"objects/Ship":12,"objects/Sky":13,"objects/SpeechBox":14}],17:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () {
+    function defineProperties(target, props) {
+        for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+        }
+    }return function (Constructor, protoProps, staticProps) {
+        if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+    };
+}();
+
+var _FixedSpeechBox = require('objects/FixedSpeechBox');
+
+var _FixedSpeechBox2 = _interopRequireDefault(_FixedSpeechBox);
+
+var _Sky = require('objects/Sky');
+
+var _Sky2 = _interopRequireDefault(_Sky);
+
+function _interopRequireDefault(obj) {
+    return obj && obj.__esModule ? obj : { default: obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+        throw new TypeError("Cannot call a class as a function");
+    }
+}
+
+function _possibleConstructorReturn(self, call) {
+    if (!self) {
+        throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }return call && (typeof call === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+        throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var LoadingState = function (_Phaser$State) {
+    _inherits(LoadingState, _Phaser$State);
+
+    function LoadingState() {
+        _classCallCheck(this, LoadingState);
+
+        return _possibleConstructorReturn(this, (LoadingState.__proto__ || Object.getPrototypeOf(LoadingState)).apply(this, arguments));
+    }
+
+    _createClass(LoadingState, [{
+        key: 'create',
+        value: function create() {
+            var center = { x: this.game.world.centerX, y: this.game.world.centerY };
+
+            var s = 'And with that, our hero\nflew off into the sunset\n\nCredits:\nEverything: Fenwick67\n'.split('\n\n');
+            //let sky = new Sky(this.game,this.game.stage);
+
+            var box = new _FixedSpeechBox2.default();
+            box.alertSequence(s);
+        }
+    }]);
+
+    return LoadingState;
+}(Phaser.State);
+
+exports.default = LoadingState;
+
+},{"objects/FixedSpeechBox":6,"objects/Sky":13}]},{},[3])
 //# sourceMappingURL=game.js.map

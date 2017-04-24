@@ -6,6 +6,13 @@ class Player extends Phaser.Sprite{
 
     //animations
     this.animations.add('walk', [2,3,4,5,6,7], 10, true);
+    this.animations.add('dig', [8,9,10,8,15,16], 10, true);
+    // 11 down, 12 blink, 13 look left, 14 look right
+    this.animations.add('idle', [0,0,0,11,0,0,0,11,0,12,0,11,0,0,0,11,0,0,0,11,13,13,13,11,0,0,0,11,14,14,14,11], 5, true);
+    this.animations.add('jet', [17,18], 10, true);
+
+    this.inventory = [];
+    this.touchingLastFrame = true;
 
     // settings
     this.speed=150;
@@ -13,6 +20,8 @@ class Player extends Phaser.Sprite{
     this.mass = .01;
     this.size = 14;
     this.bodyY = -2;
+    this.maxJetpackFuel = 100;
+    this.jetpackFuel = this.maxJetpackFuel;
 
     // physics stuffs
     game.physics.p2.enable(this);
@@ -32,6 +41,10 @@ class Player extends Phaser.Sprite{
 
   }
 
+  dig(){
+    // TODO
+  }
+
   update(){
     let cursors = this.cursors;
     let player = this;
@@ -39,11 +52,15 @@ class Player extends Phaser.Sprite{
     let desiredX = null;
     // update the player
 
-    if (cursors.left.isDown ){   //  Move to the left
+    if (cursors.down.isDown){
+      desiredX=0;
+      player.animations.play('dig');// dig!
+      player.dig();
+    }
+    else if (cursors.left.isDown ){   //  Move to the left
             player.scale.x = -1;  // a little trick.. flips the image to the left
             desiredX = -1*player.speed;
             player.animations.play('walk');
-
     }
     else if (cursors.right.isDown) {//  Move to the right
             player.scale.x = 1;
@@ -53,15 +70,13 @@ class Player extends Phaser.Sprite{
     else {// pressing neither dir
       if(touching){
         desiredX=0;  // stop on the ground
-        player.loadTexture('character', 0);   // this loads the frame 0 of my mario spritesheet  (stand)
-
+        player.animations.play('idle');
       }
-      // apply drag in the air
 
     }
 
     if (cursors.up.isDown&& !player.jumpedLastFrame){
-        //player.loadTexture('mario', 5);   // this loads the frame 5 (jump) of my mario spritesheet
+
         if(touching){  // this checks if the player is on the floor (we don't allow airjumps)
             player.body.velocity.y = -1*player.jumpSpeed;   //
             game.sound.play('jump');
@@ -69,15 +84,30 @@ class Player extends Phaser.Sprite{
         }
     }else{player.jumpedLastFrame = false;}
 
-    // show jump if airborne
-    if (!touching){
-      player.loadTexture('character',1)
+    if (!touching && cursors.up.isDown && player.hasJetpack && player.jetpackFuel > 0){
+      player.jetpackFuel --;
+      player.body.velocity.y = -1*player.jumpSpeed;
+      player.animations.play('jet');
+    }
+    else if (!touching && !this.touchingLastFrame){
+      player.loadTexture('character',1);
+    }
+
+    if (touching){
+      player.jetpackFuel = player.maxJetpackFuel;
     }
 
     // approach desiredX velocity
     if (desiredX !== null){
       player.body.velocity.x = player.body.velocity.x *0.5 + 0.5 * desiredX;
     }
+
+    // handle falling beneath the map
+    if (game.world && game.world.bounds && this.y > game.world.bounds.y+game.world.bounds.height){
+      this.respawn();
+    }
+
+    this.touchingLastFrame = touching;
 
   }
 
@@ -105,7 +135,7 @@ class Player extends Phaser.Sprite{
 
   respawn(){
     // get last checkpoint
-    var pt = game.lastCheckpoint;
+    var pt = game.lastCheckpoint|| {x:0,y:0};
     this.spawnTo(pt.x,pt.y);
   }
 

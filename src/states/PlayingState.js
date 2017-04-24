@@ -7,7 +7,8 @@ import Item from 'objects/Item'
 import Sky from 'objects/Sky';
 import SpeechBox from 'objects/SpeechBox';
 import FixedSpeechBox from 'objects/FixedSpeechBox';
-
+import PlayerSpeechBox from 'objects/PlayerSpeechBox';
+import Ship from 'objects/Ship'
 
 class PlayingState extends Phaser.State {
 
@@ -31,7 +32,6 @@ class PlayingState extends Phaser.State {
 		// create default collision group
 		this.game.physics.p2.defaultCollisionGroup = this.game.physics.p2.collisionGroups[0];
 
-		game.physics.p2.gravity.y = 1400;
 
 		this.physicsLayer = null;
 		// render each layer of the map
@@ -45,6 +45,8 @@ class PlayingState extends Phaser.State {
 				game.itemGroup = game.add.group();
 				game.followerGroup = game.add.group();
 				game.playerGroup = game.add.group();
+			}else if (l.name == "hazards"){
+					self.hazardLayer = layer;
 			}
 
 		});
@@ -68,6 +70,7 @@ class PlayingState extends Phaser.State {
 		map.setCollisionByExclusion([], true, 'physical', true)
 
 		this.layermain_tiles = game.physics.p2.convertTilemap(map, this.physicsLayer);
+		this.layerhazard_tiles = game.physics.p2.convertTilemap(map, this.hazardLayer);
 		this.layerobjects_tiles = game.physics.p2.convertCollisionObjects(map,"collisions");   // this converts the polylines of the tiled - object layer into physics bodies.. make sure to use the "polyline" tool and not the "polygon" tool - otherwise it will not work!!
 
 		//load the checkpoints
@@ -83,7 +86,6 @@ class PlayingState extends Phaser.State {
 		map.objects.followers.forEach(function(pt){
 			var follower = new Follower(game,0,0);
 			follower.spawnTo(pt.x,pt.y);
-			console.log(pt);
 			if (pt.properties.sayOnFollow){
 				follower.sayOnFollow = pt.properties.sayOnFollow.split('\n\n');
 			}
@@ -92,18 +94,21 @@ class PlayingState extends Phaser.State {
 
 		this.layerobjects_tiles.forEach(makeWorldObjectCollide);
 		this.layermain_tiles.forEach(makeWorldObjectCollide);
+		this.layerhazard_tiles.forEach(makeWorldObjectCollide);
 
 		function makeWorldObjectCollide(t){
 			t.setCollisionGroup(game.worldCollisionGroup);
 			t.collides([game.playerCollisionGroup,game.npcCollisionGroup,game.worldCollisionGroup]);
 		}
 
+		// TODO: make the hazard tiles kill the player
+
 		// create player
 		this.player = new Player(this.game,0,0);
 		game.player = this.player;
 		game.camera.follow(this.player);
 		game.camera.deadzone = new Phaser.Rectangle(320/2-20,240/2-40,20,40);
-		game.physics.p2.gravity.y = 500;
+		game.physics.p2.gravity.y = 800;
 
 
 		//spawn player
@@ -122,7 +127,14 @@ class PlayingState extends Phaser.State {
 		}
 
 		// create speech box
-		new FixedSpeechBox().alert('?!?!?');
+			var b = new PlayerSpeechBox().alertSequence([
+					'Where am I?',
+					'Did my ship crash?',
+					'Oh no! Pieces are\n strewn about everywhere!',
+					'And to top it all off,\nThis gravity is so high!',
+					'I can\'t fly, and the\nparts are too heavy to carry!'
+			]);
+
 
 		// play music
 		if (!window.debug){
@@ -130,10 +142,14 @@ class PlayingState extends Phaser.State {
 			game.music.loopFull()
 		}
 
+		// create ship
+		this.ship = game.ship = new Ship(game,176,208);
+
 	}
 
 	update(){
-		this.warpFilter.warp = Math.max(Math.min((this.game.camera.y) /8000,0.8),0)
+		// h = 1120
+		this.warpFilter.warp = Math.max(Math.min((  game.camera.y/game.camera.bounds.height)  ,0.5),0.2)
 	}
 
 

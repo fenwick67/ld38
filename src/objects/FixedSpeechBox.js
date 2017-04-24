@@ -1,9 +1,14 @@
 import SpeechBox from 'objects/SpeechBox';
 
 class FixedSpeechBox extends SpeechBox{
-  constructor(a,b,c,d,e,f,g){
-    super(a,b,c,d,e,f,g);
+  constructor(x,y,str){
+    // fit to center
+    super(x,y,str);
     this.fixedToCamera = true;
+    this.todoText.x = 640/4 - 64;
+    this.todoText.y = 480/4 - 64;
+    this.todoText.anchor.set(0.5);
+
     this.cameraOffset.set(64,64)
   }
 
