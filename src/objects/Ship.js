@@ -1,4 +1,4 @@
-import FixedSpeechBox from 'objects/FixedSpeechBox';
+import PlayerSpeechBox from 'objects/PlayerSpeechBox';
 
 class Ship extends Phaser.Sprite{
   constructor(game,x,y){
@@ -16,8 +16,10 @@ class Ship extends Phaser.Sprite{
     // get player, check if it's close
     if (this.items.length >= this.itemsNeeded && Phaser.Point.distance(this,game.player) < 32){
       //WIN!
-      game.state.start('WonState');
-      console.log('win')
+      new PlayerSpeechBox().alert('Goodbye my mole-looking friends!\nOff to more adventures!').then(function(){
+        game.state.start('WonState');
+        console.log('win')
+      })
     }
   }
 }

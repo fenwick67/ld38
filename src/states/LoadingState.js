@@ -20,7 +20,7 @@ class LoadingState extends Phaser.State {
 		});
 
 
-		['die','dig','hello','jump','pickup','speech','checkpoint','music-1'].forEach(function(name){
+		['die','dig','hello','jump','pickup','speech','checkpoint','music-1','jetpack'].forEach(function(name){
 			game.load.audio(name, 'sounds/'+name+'.wav');
 		});
 

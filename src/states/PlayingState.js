@@ -15,7 +15,7 @@ class PlayingState extends Phaser.State {
 	create() {
 
 		let center = { x: this.game.world.centerX, y: this.game.world.centerY }
-		this.game.stage.backgroundColor = '#787878';
+		this.game.stage.backgroundColor = '#000000';
 		let self = this;
 
 		// add bg

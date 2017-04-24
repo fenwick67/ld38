@@ -869,6 +869,9 @@ var Player = function (_Phaser$Sprite) {
     _this.animations.add('idle', [0, 0, 0, 11, 0, 0, 0, 11, 0, 12, 0, 11, 0, 0, 0, 11, 0, 0, 0, 11, 13, 13, 13, 11, 0, 0, 0, 11, 14, 14, 14, 11], 5, true);
     _this.animations.add('jet', [17, 18], 10, true);
 
+    _this.jetpackSound = game.sound.play('jetpack');
+    _this.jetpackSound.pause();
+
     _this.inventory = [];
     _this.touchingLastFrame = true;
 
@@ -951,8 +954,17 @@ var Player = function (_Phaser$Sprite) {
         player.jetpackFuel--;
         player.body.velocity.y = -1 * player.jumpSpeed;
         player.animations.play('jet');
+        if (!player.jetpackSound.isPlaying) {
+          player.jetpackSound.play();
+        }
       } else if (!touching && !this.touchingLastFrame) {
         player.loadTexture('character', 1);
+      }
+
+      if (player.jetpackFuel <= 0 || player.hasJetpack && !player.cursors.up.isDown) {
+        if (player.jetpackSound) {
+          player.jetpackSound.stop();
+        }
       }
 
       if (touching) {
@@ -1184,9 +1196,9 @@ var _createClass = function () {
   };
 }();
 
-var _FixedSpeechBox = require('objects/FixedSpeechBox');
+var _PlayerSpeechBox = require('objects/PlayerSpeechBox');
 
-var _FixedSpeechBox2 = _interopRequireDefault(_FixedSpeechBox);
+var _PlayerSpeechBox2 = _interopRequireDefault(_PlayerSpeechBox);
 
 function _interopRequireDefault(obj) {
   return obj && obj.__esModule ? obj : { default: obj };
@@ -1235,8 +1247,10 @@ var Ship = function (_Phaser$Sprite) {
       // get player, check if it's close
       if (this.items.length >= this.itemsNeeded && Phaser.Point.distance(this, game.player) < 32) {
         //WIN!
-        game.state.start('WonState');
-        console.log('win');
+        new _PlayerSpeechBox2.default().alert('Goodbye my mole-looking friends!\nOff to more adventures!').then(function () {
+          game.state.start('WonState');
+          console.log('win');
+        });
       }
     }
   }]);
@@ -1246,7 +1260,7 @@ var Ship = function (_Phaser$Sprite) {
 
 exports.default = Ship;
 
-},{"objects/FixedSpeechBox":6}],13:[function(require,module,exports){
+},{"objects/PlayerSpeechBox":10}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1509,7 +1523,7 @@ var LoadingState = function (_Phaser$State) {
 				game.load.image(name, 'img/' + name + '.png');
 			});
 
-			['die', 'dig', 'hello', 'jump', 'pickup', 'speech', 'checkpoint', 'music-1'].forEach(function (name) {
+			['die', 'dig', 'hello', 'jump', 'pickup', 'speech', 'checkpoint', 'music-1', 'jetpack'].forEach(function (name) {
 				game.load.audio(name, 'sounds/' + name + '.wav');
 			});
 
@@ -1653,7 +1667,7 @@ var PlayingState = function (_Phaser$State) {
 				value: function create() {
 
 						var center = { x: this.game.world.centerX, y: this.game.world.centerY };
-						this.game.stage.backgroundColor = '#787878';
+						this.game.stage.backgroundColor = '#000000';
 						var self = this;
 
 						// add bg

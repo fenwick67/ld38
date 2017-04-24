@@ -11,6 +11,9 @@ class Player extends Phaser.Sprite{
     this.animations.add('idle', [0,0,0,11,0,0,0,11,0,12,0,11,0,0,0,11,0,0,0,11,13,13,13,11,0,0,0,11,14,14,14,11], 5, true);
     this.animations.add('jet', [17,18], 10, true);
 
+    this.jetpackSound = game.sound.play('jetpack')
+    this.jetpackSound.pause();
+
     this.inventory = [];
     this.touchingLastFrame = true;
 
@@ -84,13 +87,20 @@ class Player extends Phaser.Sprite{
         }
     }else{player.jumpedLastFrame = false;}
 
-    if (!touching && cursors.up.isDown && player.hasJetpack && player.jetpackFuel > 0){
+   if (!touching && cursors.up.isDown && player.hasJetpack && player.jetpackFuel > 0){
       player.jetpackFuel --;
       player.body.velocity.y = -1*player.jumpSpeed;
       player.animations.play('jet');
-    }
-    else if (!touching && !this.touchingLastFrame){
+      if (!player.jetpackSound.isPlaying){
+        player.jetpackSound.play()
+      }
+
+    }else if (!touching && !this.touchingLastFrame){
       player.loadTexture('character',1);
+    }
+
+    if(player.jetpackFuel<=0 || player.hasJetpack && !player.cursors.up.isDown){
+      if (player.jetpackSound){player.jetpackSound.stop()}
     }
 
     if (touching){

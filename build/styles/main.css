@@ -1,6 +1,7 @@
 html,#content>div{
-  background:#eee !important;/*TODO: fix this in JS*/
-  color:#555;
+  background:#000 !important;/*TODO: fix this in JS*/
+  background:url('../img/stars.png') !important;/*TODO: fix this in JS*/
+  color:#eee;
 }
 
 html {
@@ -44,9 +45,10 @@ body {
   box-shadow:0 0 0 0 black;
   transform:translateY(0);
   transition: all 0.3s;
+  background-color:rgba(69, 78, 82, 0.79);
 }
 .fullscreen-button:hover{
-  box-shadow: 0 3px 10px 0px rgba(0,0,0,0.5);
+  box-shadow: 0 3px 20px 4px rgba(69, 78, 82, 0.79);
   transform:translateY(-1px);
 }
 .fullscreen-button>*{
