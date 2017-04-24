@@ -4,7 +4,10 @@ import CurvyShader from 'objects/CurvyShader'
 import Follower from 'objects/Follower';
 import Checkpoint from 'objects/Checkpoint'
 import Item from 'objects/Item'
-import Sky from 'objects/sky';
+import Sky from 'objects/Sky';
+import SpeechBox from 'objects/SpeechBox';
+import FixedSpeechBox from 'objects/FixedSpeechBox';
+
 
 class PlayingState extends Phaser.State {
 
@@ -39,6 +42,7 @@ class PlayingState extends Phaser.State {
 				layer.debug=false;
 				layer.resizeWorld();
 				// now add the layer for the player + followers
+				game.itemGroup = game.add.group();
 				game.followerGroup = game.add.group();
 				game.playerGroup = game.add.group();
 			}
@@ -54,6 +58,12 @@ class PlayingState extends Phaser.State {
 		this.world.filters = [this.warpFilter];
 
 		// init physics
+
+		// collision groups
+		game.worldCollisionGroup = game.physics.p2.createCollisionGroup();
+		game.playerCollisionGroup = game.physics.p2.createCollisionGroup();
+		game.npcCollisionGroup = game.physics.p2.createCollisionGroup();
+
 		// enable collision on all tiles in the physical layer
 		map.setCollisionByExclusion([], true, 'physical', true)
 
@@ -63,18 +73,22 @@ class PlayingState extends Phaser.State {
 		//load the checkpoints
 		map.objects.checkpoints.forEach(function(pt){
 			var checkPt = new Checkpoint(game,pt);
-		})
+		});
 
 		//load the items
 		map.objects.items.forEach(function(pt){
 			var item = new Item(game,pt);
-		})
+		});
 
+		map.objects.followers.forEach(function(pt){
+			var follower = new Follower(game,0,0);
+			follower.spawnTo(pt.x,pt.y);
+			console.log(pt);
+			if (pt.properties.sayOnFollow){
+				follower.sayOnFollow = pt.properties.sayOnFollow.split('\n\n');
+			}
+		});
 
-		// collision groups
-		game.worldCollisionGroup = game.physics.p2.createCollisionGroup();
-		game.playerCollisionGroup = game.physics.p2.createCollisionGroup();
-		game.npcCollisionGroup = game.physics.p2.createCollisionGroup();
 
 		this.layerobjects_tiles.forEach(makeWorldObjectCollide);
 		this.layermain_tiles.forEach(makeWorldObjectCollide);
@@ -93,21 +107,33 @@ class PlayingState extends Phaser.State {
 
 
 		//spawn player
-		this.player.spawnTo(40,40);
 
-		// create followers
-		this.follower = new Follower(this.game,0,0);
-		this.follower.follow(this.player);
-		this.follower.spawnTo(140,140);
+		var spawned = false;
 
-		this.follower2 = new Follower(this.game,0,0);
-		this.follower2.follow(this.player);
-		this.follower2.spawnTo(150,150);
+		map.objects.entities.forEach(function(e){
+			if (e.type == 'spawn'){
+				self.player.spawnTo(e.x,e.y);
+				spawned = true;
+			}
+		});
+		if (!spawned){
+			console.warn('spawn point not deinfes');
+			self.player.spawnTo(0,0);
+		}
+
+		// create speech box
+		new FixedSpeechBox().alert('?!?!?');
+
+		// play music
+		if (!window.debug){
+			game.music = game.add.audio('music-1');
+			game.music.loopFull()
+		}
 
 	}
 
 	update(){
-		this.warpFilter.warp = Math.max(Math.min((this.game.camera.y) /3000,0.7),0)
+		this.warpFilter.warp = Math.max(Math.min((this.game.camera.y) /8000,0.8),0)
 	}
 
 

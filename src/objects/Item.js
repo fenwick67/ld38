@@ -5,9 +5,12 @@ class Item extends Phaser.Sprite{
     super(game,objData.x,objData.y-48,objData.type,0);
 
     // add to game immediately
-    this.game.world.addChild(this);
+    if (this.game.itemGroup){
+      this.game.itemGroup.addChild(this);
+    }else{
+      this.game.world.addChild(this);
+    }
   }
-
 
   update(){
     if (game.player && Phaser.Point.distance(this,game.player) < 32){
@@ -17,6 +20,7 @@ class Item extends Phaser.Sprite{
 
   onPickup(){
     // todo
+    game.sound.play('pickup');
     this.destroy();
   }
 

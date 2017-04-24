@@ -5,7 +5,7 @@ class Player extends Phaser.Sprite{
     this.game = game;
 
     //animations
-    this.animations.add('walk', [2,3,4,5], 10, true);
+    this.animations.add('walk', [2,3,4,5,6,7], 10, true);
 
     // settings
     this.speed=150;
@@ -60,12 +60,14 @@ class Player extends Phaser.Sprite{
 
     }
 
-    if (cursors.up.isDown){
+    if (cursors.up.isDown&& !player.jumpedLastFrame){
         //player.loadTexture('mario', 5);   // this loads the frame 5 (jump) of my mario spritesheet
         if(touching){  // this checks if the player is on the floor (we don't allow airjumps)
-            player.body.velocity.y = -1*player.jumpSpeed;   // change the y velocity to -800 means "jump!"
+            player.body.velocity.y = -1*player.jumpSpeed;   //
+            game.sound.play('jump');
+            player.jumpedLastFrame = true;
         }
-    }
+    }else{player.jumpedLastFrame = false;}
 
     // show jump if airborne
     if (!touching){
@@ -89,6 +91,8 @@ class Player extends Phaser.Sprite{
   spawnTo(x,y){
     this.body.x=x;
     this.body.y=y;
+    this.body.velocity.x = 0;
+    this.body.velocity.y = 0;
 
     if (this.game.playerGroup){
       console.log('add to player group');
@@ -97,6 +101,12 @@ class Player extends Phaser.Sprite{
       console.log('no player group');
       this.game.world.addChild(this);
     }
+  }
+
+  respawn(){
+    // get last checkpoint
+    var pt = game.lastCheckpoint;
+    this.spawnTo(pt.x,pt.y);
   }
 
   remove(){

@@ -156,8 +156,9 @@ var Game = function (_Phaser$Game) {
 				_this.state.add('PlayingState', _PlayingState2.default, false);
 
 				_this.state.start('LoadingState');
-				window.debug = true;
 
+				// debug when devtools open
+				window.debug = false;
 				return _this;
 		}
 
@@ -166,7 +167,7 @@ var Game = function (_Phaser$Game) {
 
 window.game = new Game();
 
-},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":11,"states/PlayingState":12}],4:[function(require,module,exports){
+},{"controllers/FullscreenController":1,"controllers/LevelController":2,"states/LoadingState":13,"states/PlayingState":14}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -214,8 +215,8 @@ var Checkpoint = function (_Phaser$Sprite) {
     _this.size = 32;
 
     //animations
-    _this.animations.add('spin', [0, 1, 2, 3, 4, 3, 2, 1], 5, true);
-    _this.animations.play('spin', 10);
+    _this.animations.add('spin', [0, 1, 2, 3, 4, 3, 2, 1], 10, true);
+    _this.animations.play('spin');
     _this.animations.currentAnim.paused = true;
 
     if (!_this.game.checkpoints) {
@@ -225,7 +226,11 @@ var Checkpoint = function (_Phaser$Sprite) {
     _this.game.checkpoints.push(_this);
 
     // add to game immediately
-    _this.game.world.addChild(_this);
+    if (_this.game.itemGroup) {
+      _this.game.itemGroup.addChild(_this);
+    } else {
+      _this.game.world.addChild(_this);
+    }
     return _this;
   }
 
@@ -246,6 +251,7 @@ var Checkpoint = function (_Phaser$Sprite) {
 
         this.active = true;
         this.animations.currentAnim.paused = false;
+        game.sound.play('checkpoint');
       }
     }
   }]);
@@ -408,6 +414,110 @@ var _createClass = function () {
   };
 }();
 
+var _SpeechBox2 = require('objects/SpeechBox');
+
+var _SpeechBox3 = _interopRequireDefault(_SpeechBox2);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && (typeof call === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var FixedSpeechBox = function (_SpeechBox) {
+  _inherits(FixedSpeechBox, _SpeechBox);
+
+  function FixedSpeechBox(a, b, c, d, e, f, g) {
+    _classCallCheck(this, FixedSpeechBox);
+
+    var _this = _possibleConstructorReturn(this, (FixedSpeechBox.__proto__ || Object.getPrototypeOf(FixedSpeechBox)).call(this, a, b, c, d, e, f, g));
+
+    _this.fixedToCamera = true;
+    _this.cameraOffset.set(64, 64);
+    return _this;
+  }
+
+  _createClass(FixedSpeechBox, [{
+    key: 'alert',
+    value: function alert(str, hideAfter) {
+      var hideAfter = hideAfter;
+      if (typeof hideAfter == 'undefined') {
+        hideAfter = true;
+      }
+      return this.showUntilButtonPress(str, hideAfter);
+    }
+  }, {
+    key: 'alertSequence',
+    value: function alertSequence(strs) {
+      var self = this;
+
+      if (typeof strs == 'string') {
+        return this.alert(strs);
+      }
+
+      // http://stackoverflow.com/questions/29880715/how-to-synchronize-a-sequence-of-promises
+
+      var index = 0;
+      function next() {
+        if (index < strs.length) {
+          self.alert(strs[index++], false).then(next);
+        } else {
+          //end
+          self.destroy();
+        }
+      }
+      next();
+    }
+  }]);
+
+  return FixedSpeechBox;
+}(_SpeechBox3.default);
+
+exports.default = FixedSpeechBox;
+
+window.FixedSpeechBox = FixedSpeechBox;
+
+},{"objects/SpeechBox":12}],7:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+  };
+}();
+
+var _FixedSpeechBox = require('objects/FixedSpeechBox');
+
+var _FixedSpeechBox2 = _interopRequireDefault(_FixedSpeechBox);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
+
 function _classCallCheck(instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -432,13 +542,15 @@ var Follower = function (_Phaser$Sprite) {
   function Follower(game, key) {
     _classCallCheck(this, Follower);
 
-    var _this = _possibleConstructorReturn(this, (Follower.__proto__ || Object.getPrototypeOf(Follower)).call(this, game, 0, 0, key || 'character', 0));
+    var _this = _possibleConstructorReturn(this, (Follower.__proto__ || Object.getPrototypeOf(Follower)).call(this, game, 0, 0, key || 'follower', 0));
 
-    _this.key = key || 'character';
+    _this.key = key || 'follower';
     _this.game = game;
+    _this.autoFollow = true;
 
     //animations
-    _this.animations.add('walk', [2, 3, 4, 5, 4, 3], 10, true);
+    _this.animations.add('walk', [4, 0, 5, 0], 10, true);
+    _this.animations.add('idle', [0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 1, 2, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3], 10, true);
 
     // settings
     _this.speed = 150;
@@ -447,7 +559,7 @@ var Follower = function (_Phaser$Sprite) {
     _this.size = 18;
     _this.bodyY = 2;
     _this.maxDistance = 300;
-    _this.stopDistance = 100;
+    _this.stopDistance = 64;
     _this.followOffset = 32;
 
     // physics stuffs
@@ -463,6 +575,7 @@ var Follower = function (_Phaser$Sprite) {
 
     _this.body.setCollisionGroup(game.npcCollisionGroup);
     _this.body.collides([game.worldCollisionGroup, game.physics.p2.boundsCollisionGroup]);
+    _this.animations.play('idle');
 
     return _this;
   }
@@ -473,18 +586,22 @@ var Follower = function (_Phaser$Sprite) {
       this.target = target;
       target.followers = target.followers || [];
       target.followers.push(this);
-      this.stopCollidingWithPlayer();
       this.stopDistance += this.followOffset * (target.followers.length - 1);
       this.maxDistance += this.followOffset * (target.followers.length - 1);
     }
   }, {
-    key: 'stopCollidingWithPlayer',
-    value: function stopCollidingWithPlayer() {
-      // todo
-    }
-  }, {
     key: 'update',
     value: function update() {
+
+      // follow the player if we found him
+      if (this.autoFollow && !this.target && game.player && Phaser.Point.distance(this.body, game.player) < 32) {
+        this.follow(game.player);
+        game.sound.play('hello');
+        if (this.sayOnFollow) {
+          new _FixedSpeechBox2.default().alertSequence(this.sayOnFollow);
+        }
+      }
+
       if (!this.target) {
         return;
       } // don't move
@@ -522,7 +639,7 @@ var Follower = function (_Phaser$Sprite) {
         this.scale.x = -1;
         this.animations.play('walk');
       } else {
-        this.loadTexture(this.key, 0);
+        this.animations.play('idle');
       }
     }
   }, {
@@ -530,6 +647,8 @@ var Follower = function (_Phaser$Sprite) {
     value: function spawnTo(x, y) {
       this.body.x = x;
       this.body.y = y;
+      this.body.velocity.x = 0;
+      this.body.velocity.y = 0;
 
       if (this.game.followerGroup) {
         console.log('add to follower group');
@@ -546,7 +665,7 @@ var Follower = function (_Phaser$Sprite) {
 
 exports.default = Follower;
 
-},{}],7:[function(require,module,exports){
+},{"objects/FixedSpeechBox":6}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -594,7 +713,11 @@ var Item = function (_Phaser$Sprite) {
     // add to game immediately
     var _this = _possibleConstructorReturn(this, (Item.__proto__ || Object.getPrototypeOf(Item)).call(this, game, objData.x, objData.y - 48, objData.type, 0));
 
-    _this.game.world.addChild(_this);
+    if (_this.game.itemGroup) {
+      _this.game.itemGroup.addChild(_this);
+    } else {
+      _this.game.world.addChild(_this);
+    }
     return _this;
   }
 
@@ -609,6 +732,7 @@ var Item = function (_Phaser$Sprite) {
     key: 'onPickup',
     value: function onPickup() {
       // todo
+      game.sound.play('pickup');
       this.destroy();
     }
   }]);
@@ -618,7 +742,7 @@ var Item = function (_Phaser$Sprite) {
 
 exports.default = Item;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -664,7 +788,7 @@ var Player = function (_Phaser$Sprite) {
     _this.game = game;
 
     //animations
-    _this.animations.add('walk', [2, 3, 4, 5], 10, true);
+    _this.animations.add('walk', [2, 3, 4, 5, 6, 7], 10, true);
 
     // settings
     _this.speed = 150;
@@ -719,12 +843,16 @@ var Player = function (_Phaser$Sprite) {
         // apply drag in the air
       }
 
-      if (cursors.up.isDown) {
+      if (cursors.up.isDown && !player.jumpedLastFrame) {
         //player.loadTexture('mario', 5);   // this loads the frame 5 (jump) of my mario spritesheet
         if (touching) {
           // this checks if the player is on the floor (we don't allow airjumps)
-          player.body.velocity.y = -1 * player.jumpSpeed; // change the y velocity to -800 means "jump!"
+          player.body.velocity.y = -1 * player.jumpSpeed; //
+          game.sound.play('jump');
+          player.jumpedLastFrame = true;
         }
+      } else {
+        player.jumpedLastFrame = false;
       }
 
       // show jump if airborne
@@ -750,6 +878,8 @@ var Player = function (_Phaser$Sprite) {
     value: function spawnTo(x, y) {
       this.body.x = x;
       this.body.y = y;
+      this.body.velocity.x = 0;
+      this.body.velocity.y = 0;
 
       if (this.game.playerGroup) {
         console.log('add to player group');
@@ -758,6 +888,13 @@ var Player = function (_Phaser$Sprite) {
         console.log('no player group');
         this.game.world.addChild(this);
       }
+    }
+  }, {
+    key: 'respawn',
+    value: function respawn() {
+      // get last checkpoint
+      var pt = game.lastCheckpoint;
+      this.spawnTo(pt.x, pt.y);
     }
   }, {
     key: 'remove',
@@ -784,7 +921,7 @@ function touchingDown(someone) {
 
 exports.default = Player;
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -825,13 +962,13 @@ var RainbowText = function (_Phaser$Text) {
 	function RainbowText(game, x, y, text) {
 		_classCallCheck(this, RainbowText);
 
-		var _this = _possibleConstructorReturn(this, (RainbowText.__proto__ || Object.getPrototypeOf(RainbowText)).call(this, game, x, y, text, { font: "2em Arial", fill: "#ff0044", align: "center" }));
+		var _this = _possibleConstructorReturn(this, (RainbowText.__proto__ || Object.getPrototypeOf(RainbowText)).call(this, game, x, y, text, { font: "1em Arial", fill: "#ffffff", align: "center" }));
 
 		_this._speed = 125; //ms
 		_this._colorIndex = 0;
 		_this._colors = ['#ee4035', '#f37736', '#fdf498', '#7bc043', '#0392cf'];
 
-		_this.colorize();
+		//this.colorize();
 		_this.startTimer();
 
 		_this.game.stage.addChild(_this);
@@ -842,7 +979,7 @@ var RainbowText = function (_Phaser$Text) {
 	_createClass(RainbowText, [{
 		key: "startTimer",
 		value: function startTimer() {
-			this.game.time.events.loop(this._speed, this.colorize, this).timer.start();
+			//this.game.time.events.loop(this._speed, this.colorize, this).timer.start();
 		}
 	}, {
 		key: "colorize",
@@ -865,7 +1002,7 @@ var RainbowText = function (_Phaser$Text) {
 
 exports.default = RainbowText;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -929,7 +1066,133 @@ var Sky = function (_Phaser$Group) {
 
 exports.default = Sky;
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];descriptor.enumerable = descriptor.enumerable || false;descriptor.configurable = true;if ("value" in descriptor) descriptor.writable = true;Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);if (staticProps) defineProperties(Constructor, staticProps);return Constructor;
+  };
+}();
+
+var _RainbowText = require('objects/RainbowText');
+
+var _RainbowText2 = _interopRequireDefault(_RainbowText);
+
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
+
+function _classCallCheck(instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }return call && (typeof call === "object" || typeof call === "function") ? call : self;
+}
+
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } });if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+}
+
+var SpeechBox = function (_Phaser$Group) {
+  _inherits(SpeechBox, _Phaser$Group);
+
+  function SpeechBox(x, y, str) {
+    _classCallCheck(this, SpeechBox);
+
+    var _this = _possibleConstructorReturn(this, (SpeechBox.__proto__ || Object.getPrototypeOf(SpeechBox)).call(this, game, game.world, null));
+
+    _this.str = str || '';
+    _this.x = x;
+    _this.y = y;
+
+    var chars = 'ABCDEFGHIJKLMNOPQRSTUVQXYZ'; // + '0123456789-*!©"\'?.…,'';
+    _this.retroFont = new Phaser.RetroFont(game, 'smallfont', 8, 8, chars, 8);
+
+    _this.box = new Phaser.Sprite(game, 0, 0, 'textbox');
+    _this.addChild(_this.box);
+
+    _this.textTexture = new Phaser.Image(game, 0, 0);
+    _this.textTexture.anchor.set(0.5, 1);
+    _this.addChild(_this.textTexture);
+
+    _this.todoText = new _RainbowText2.default(_this.game, 0, 0, _this.str);
+    _this.addChild(_this.todoText);
+
+    _this.updateText(_this.str);
+    return _this;
+  }
+
+  _createClass(SpeechBox, [{
+    key: 'updateText',
+    value: function updateText(str) {
+      this.str = str;
+      this.retroFont.text = str;
+      this.todoText.text = str;
+      this.retroFont.renderXY(this.textTexture);
+    }
+  }, {
+    key: 'show',
+    value: function show(str) {
+      if (typeof str == 'string') {
+        this.updateText(str);
+      }
+      game.world.addChild(this);
+      game.sound.play('speech');
+    }
+  }, {
+    key: 'showUntilButtonPress',
+    value: function showUntilButtonPress(str, destroyAfter) {
+      this.show(str);
+      var self = this;
+
+      game.paused = true;
+      game.sound.mute = false;
+
+      var p = new Promise(function (resolve, reject) {
+
+        window.addEventListener('keydown', function (e) {
+          if (e.key == "Enter") {
+            window.removeEventListener('keydown', this);
+            game.paused = false;
+            setTimeout(resolve, 0);
+            if (destroyAfter) {
+              self.destroy();
+            }
+          }
+        });
+      });
+
+      return p;
+    }
+  }, {
+    key: 'hide',
+    value: function hide() {
+      game.world.remove(this);
+    }
+  }]);
+
+  return SpeechBox;
+}(Phaser.Group);
+
+exports.default = SpeechBox;
+
+},{"objects/RainbowText":10}],13:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -994,20 +1257,25 @@ var LoadingState = function (_Phaser$State) {
 			game.load.image('paint_tiles', 'img/paint_tiles-sheet.png');
 			game.load.image('huge_tiles', 'img/huge_tiles.png');
 
-			['jetpack', 'battery', 'booster', 'steeringwheel', 'bg'].forEach(function (name) {
+			var center = { x: this.game.world.centerX, y: this.game.world.centerY };
+			this.text = new _RainbowText2.default(this.game, center.x, center.y, "- phaser -\nwith a sprinkle of\nES6 dust!");
+			this.text.anchor.set(0.5);
+
+			['jetpack', 'battery', 'booster', 'steeringwheel', 'bg', 'textbox', 'smallfont'].forEach(function (name) {
 				game.load.image(name, 'img/' + name + '.png');
 			});
 
+			['die', 'dig', 'hello', 'jump', 'pickup', 'speech', 'checkpoint', 'music-1'].forEach(function (name) {
+				game.load.audio(name, 'sounds/' + name + '.wav');
+			});
+
 			game.load.spritesheet('character', 'img/character-sheet.png', 64, 64);
+			game.load.spritesheet('follower', 'img/follower.png', 64, 64);
 			game.load.spritesheet('checkpoint', 'img/checkpoint.png', 32, 32);
 
 			console.log('loading');
 			game.load.onLoadComplete.add(this.loadComplete, this);
 			game.load.onFileComplete.add(this.fileComplete, this);
-
-			var center = { x: this.game.world.centerX, y: this.game.world.centerY };
-			this.text = new _RainbowText2.default(this.game, center.x, center.y, "- phaser -\nwith a sprinkle of\nES6 dust!");
-			this.text.anchor.set(0.5);
 		}
 	}, {
 		key: 'loadComplete',
@@ -1044,7 +1312,7 @@ var LoadingState = function (_Phaser$State) {
 
 exports.default = LoadingState;
 
-},{"objects/RainbowText":9,"states/PlayingState":12}],12:[function(require,module,exports){
+},{"objects/RainbowText":10,"states/PlayingState":14}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1085,9 +1353,17 @@ var _Item = require('objects/Item');
 
 var _Item2 = _interopRequireDefault(_Item);
 
-var _sky = require('objects/sky');
+var _Sky = require('objects/Sky');
 
-var _sky2 = _interopRequireDefault(_sky);
+var _Sky2 = _interopRequireDefault(_Sky);
+
+var _SpeechBox = require('objects/SpeechBox');
+
+var _SpeechBox2 = _interopRequireDefault(_SpeechBox);
+
+var _FixedSpeechBox = require('objects/FixedSpeechBox');
+
+var _FixedSpeechBox2 = _interopRequireDefault(_FixedSpeechBox);
 
 function _interopRequireDefault(obj) {
 		return obj && obj.__esModule ? obj : { default: obj };
@@ -1129,7 +1405,7 @@ var PlayingState = function (_Phaser$State) {
 						var self = this;
 
 						// add bg
-						this.sky = new _sky2.default(this.game, this.game.stage);
+						this.sky = new _Sky2.default(this.game, this.game.stage);
 						game.world.addChild(this.sky);
 
 						//create maps
@@ -1153,6 +1429,7 @@ var PlayingState = function (_Phaser$State) {
 										layer.debug = false;
 										layer.resizeWorld();
 										// now add the layer for the player + followers
+										game.itemGroup = game.add.group();
 										game.followerGroup = game.add.group();
 										game.playerGroup = game.add.group();
 								}
@@ -1167,6 +1444,12 @@ var PlayingState = function (_Phaser$State) {
 						this.world.filters = [this.warpFilter];
 
 						// init physics
+
+						// collision groups
+						game.worldCollisionGroup = game.physics.p2.createCollisionGroup();
+						game.playerCollisionGroup = game.physics.p2.createCollisionGroup();
+						game.npcCollisionGroup = game.physics.p2.createCollisionGroup();
+
 						// enable collision on all tiles in the physical layer
 						map.setCollisionByExclusion([], true, 'physical', true);
 
@@ -1183,10 +1466,14 @@ var PlayingState = function (_Phaser$State) {
 								var item = new _Item2.default(game, pt);
 						});
 
-						// collision groups
-						game.worldCollisionGroup = game.physics.p2.createCollisionGroup();
-						game.playerCollisionGroup = game.physics.p2.createCollisionGroup();
-						game.npcCollisionGroup = game.physics.p2.createCollisionGroup();
+						map.objects.followers.forEach(function (pt) {
+								var follower = new _Follower2.default(game, 0, 0);
+								follower.spawnTo(pt.x, pt.y);
+								console.log(pt);
+								if (pt.properties.sayOnFollow) {
+										follower.sayOnFollow = pt.properties.sayOnFollow.split('\n\n');
+								}
+						});
 
 						this.layerobjects_tiles.forEach(makeWorldObjectCollide);
 						this.layermain_tiles.forEach(makeWorldObjectCollide);
@@ -1204,21 +1491,33 @@ var PlayingState = function (_Phaser$State) {
 						game.physics.p2.gravity.y = 500;
 
 						//spawn player
-						this.player.spawnTo(40, 40);
 
-						// create followers
-						this.follower = new _Follower2.default(this.game, 0, 0);
-						this.follower.follow(this.player);
-						this.follower.spawnTo(140, 140);
+						var spawned = false;
 
-						this.follower2 = new _Follower2.default(this.game, 0, 0);
-						this.follower2.follow(this.player);
-						this.follower2.spawnTo(150, 150);
+						map.objects.entities.forEach(function (e) {
+								if (e.type == 'spawn') {
+										self.player.spawnTo(e.x, e.y);
+										spawned = true;
+								}
+						});
+						if (!spawned) {
+								console.warn('spawn point not deinfes');
+								self.player.spawnTo(0, 0);
+						}
+
+						// create speech box
+						new _FixedSpeechBox2.default().alert('?!?!?');
+
+						// play music
+						if (!window.debug) {
+								game.music = game.add.audio('music-1');
+								game.music.loopFull();
+						}
 				}
 		}, {
 				key: 'update',
 				value: function update() {
-						this.warpFilter.warp = Math.max(Math.min(this.game.camera.y / 3000, 0.7), 0);
+						this.warpFilter.warp = Math.max(Math.min(this.game.camera.y / 8000, 0.8), 0);
 				}
 		}]);
 
@@ -1227,5 +1526,5 @@ var PlayingState = function (_Phaser$State) {
 
 exports.default = PlayingState;
 
-},{"objects/Checkpoint":4,"objects/CurvyShader":5,"objects/Follower":6,"objects/Item":7,"objects/Player":8,"objects/RainbowText":9,"objects/sky":10}]},{},[3])
+},{"objects/Checkpoint":4,"objects/CurvyShader":5,"objects/FixedSpeechBox":6,"objects/Follower":7,"objects/Item":8,"objects/Player":9,"objects/RainbowText":10,"objects/Sky":11,"objects/SpeechBox":12}]},{},[3])
 //# sourceMappingURL=game.js.map

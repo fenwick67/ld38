@@ -23,8 +23,9 @@ class Game extends Phaser.Game {
 		this.state.add('PlayingState', PlayingState, false);
 
 		this.state.start('LoadingState');
-		window.debug = true;
 
+		// debug when devtools open
+		window.debug = false;
 	}
 
 }

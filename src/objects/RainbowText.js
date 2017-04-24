@@ -2,13 +2,13 @@ class RainbowText extends Phaser.Text {
 
 	constructor(game, x, y, text) {
 
-		super(game, x, y, text, { font: "2em Arial", fill: "#ff0044", align: "center" });
+		super(game, x, y, text, { font: "1em Arial", fill: "#ffffff", align: "center" });
 
 		this._speed = 125; //ms
 		this._colorIndex = 0;
 		this._colors = ['#ee4035', '#f37736', '#fdf498', '#7bc043', '#0392cf'];
 
-		this.colorize();
+		//this.colorize();
 		this.startTimer();
 
 		this.game.stage.addChild(this);
@@ -16,7 +16,7 @@ class RainbowText extends Phaser.Text {
 	}
 
 	startTimer() {
-		this.game.time.events.loop(this._speed, this.colorize, this).timer.start();
+		//this.game.time.events.loop(this._speed, this.colorize, this).timer.start();
 	}
 
 	colorize() {

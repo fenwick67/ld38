@@ -1,12 +1,16 @@
+import FixedSpeechBox from 'objects/FixedSpeechBox';
+
 class Follower extends Phaser.Sprite{
 
   constructor(game,key){
-    super(game,0,0,key||'character',0);
-    this.key = key||'character';
+    super(game,0,0,key||'follower',0);
+    this.key = key||'follower';
     this.game = game;
+    this.autoFollow = true;
 
     //animations
-    this.animations.add('walk', [2,3,4,5,4,3], 10, true);
+    this.animations.add('walk', [4,0,5,0], 10, true);
+    this.animations.add('idle', [0,0,0,0,0,0,0,3,0,0,0,0,0,0,1,2,1,2,0,0,0,0,0,0,0,0,3], 10, true);
 
     // settings
     this.speed=150;
@@ -15,7 +19,7 @@ class Follower extends Phaser.Sprite{
     this.size = 18;
     this.bodyY = 2;
     this.maxDistance = 300;
-    this.stopDistance = 100;
+    this.stopDistance = 64;
     this.followOffset = 32;
 
     // physics stuffs
@@ -31,6 +35,7 @@ class Follower extends Phaser.Sprite{
 
 		this.body.setCollisionGroup(game.npcCollisionGroup);
 		this.body.collides([game.worldCollisionGroup,game.physics.p2.boundsCollisionGroup]);
+    this.animations.play('idle');
 
   }
 
@@ -38,17 +43,23 @@ class Follower extends Phaser.Sprite{
     this.target = target;
     target.followers = target.followers || [];
     target.followers.push(this);
-    this.stopCollidingWithPlayer();
     this.stopDistance += this.followOffset*(target.followers.length-1);
     this.maxDistance += this.followOffset*(target.followers.length-1);
   }
 
 
-  stopCollidingWithPlayer(){
-    // todo
-  }
 
   update(){
+
+    // follow the player if we found him
+    if ( this.autoFollow && !this.target && game.player && Phaser.Point.distance(this.body,game.player) < 32){
+      this.follow(game.player);
+      game.sound.play('hello');
+      if (this.sayOnFollow){
+        new FixedSpeechBox().alertSequence(this.sayOnFollow);
+      }
+    }
+
     if (!this.target){return;}// don't move
 
     var d = Phaser.Point.distance(this.target.position,this.body);
@@ -85,7 +96,7 @@ class Follower extends Phaser.Sprite{
       this.scale.x = -1;
       this.animations.play('walk');
     }else{
-      this.loadTexture(this.key,0);
+      this.animations.play('idle');
     }
 
 
@@ -94,6 +105,8 @@ class Follower extends Phaser.Sprite{
   spawnTo(x,y){
     this.body.x=x;
     this.body.y=y;
+    this.body.velocity.x = 0;
+    this.body.velocity.y = 0;
 
     if (this.game.followerGroup){
       console.log('add to follower group');

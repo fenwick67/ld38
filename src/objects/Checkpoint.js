@@ -8,8 +8,8 @@ class Checkpoint extends Phaser.Sprite{
     this.size = 32;
 
     //animations
-    this.animations.add('spin', [0,1,2,3,4,3,2,1], 5, true);
-    this.animations.play('spin',10);
+    this.animations.add('spin', [0,1,2,3,4,3,2,1], 10, true);
+    this.animations.play('spin');
     this.animations.currentAnim.paused = true;
 
     if (!this.game.checkpoints){
@@ -19,7 +19,11 @@ class Checkpoint extends Phaser.Sprite{
     this.game.checkpoints.push(this);
 
     // add to game immediately
-    this.game.world.addChild(this);
+    if (this.game.itemGroup){
+      this.game.itemGroup.addChild(this);
+    }else{
+      this.game.world.addChild(this);
+    }
   }
 
   update(){
@@ -37,7 +41,7 @@ class Checkpoint extends Phaser.Sprite{
 
       this.active = true;
       this.animations.currentAnim.paused = false;
-
+      game.sound.play('checkpoint');
     }
   }
 
