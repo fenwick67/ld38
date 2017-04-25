@@ -45,7 +45,7 @@ body {
   box-shadow:0 0 0 0 black;
   transform:translateY(0);
   transition: all 0.3s;
-  background-color:rgba(69, 78, 82, 0.79);
+  background-color:#000;
 }
 .fullscreen-button:hover{
   box-shadow: 0 3px 20px 4px rgba(69, 78, 82, 0.79);
@@ -54,7 +54,9 @@ body {
 .fullscreen-button>*{
   padding:10px;
 }
-
+p{
+  background-color:#000;
+}
 #content>canvas{/*hacky but owell*/
   width:640px !important;
   height:480px !important;
